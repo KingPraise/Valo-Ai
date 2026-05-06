@@ -117,12 +117,65 @@ export default function AdminDashboard() {
 }
 
 function OverviewTab({ setTab }: { setTab: (t: AdminTab) => void }) {
+  const [stats, setStats] = useState({
+    totalSubs: 0,
+    paidActive: 0,
+    freeTrial: 0,
+    signalsToday: 0
+  });
+  const [recentSignals, setRecentSignals] = useState<Signal[]>([]);
+  const [pendingPayoutsCount, setPendingPayoutsCount] = useState(0);
+
+  useEffect(() => {
+    // Users Listener
+    const unsubUsers = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const users = snapshot.docs.map(doc => doc.data() as UserData);
+      setStats(prev => ({
+        ...prev,
+        totalSubs: users.length,
+        paidActive: users.filter(u => u.status === 'active').length,
+        freeTrial: users.filter(u => u.status === 'trial').length
+      }));
+    });
+
+    // Signals Listener
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const qSignals = query(collection(db, 'signals'), orderBy('createdAt', 'desc'), limit(5));
+    const unsubSignals = onSnapshot(qSignals, (snapshot) => {
+      const signals = snapshot.docs.map(doc => doc.data() as Signal);
+      setRecentSignals(signals);
+      // Roughly count signals today
+      const todayCount = signals.filter(s => s.createdAt?.toDate && s.createdAt.toDate() > today).length;
+      setStats(prev => ({ ...prev, signalsToday: todayCount }));
+    });
+
+    // Payouts Listener
+    const qPayouts = query(collection(db, 'payoutRequests'), where('status', '==', 'pending'));
+    const unsubPayouts = onSnapshot(qPayouts, (snapshot) => {
+      setPendingPayoutsCount(snapshot.size);
+    });
+
+    return () => {
+      unsubUsers();
+      unsubSignals();
+      unsubPayouts();
+    };
+  }, []);
+
+  const kpis = [
+    { label: 'Total Subscribers', val: stats.totalSubs.toLocaleString(), change: 'Lifetime growth', color: 'text-purple' },
+    { label: 'Paid Active', val: stats.paidActive.toLocaleString(), change: `${Math.round((stats.paidActive / stats.totalSubs) * 100) || 0}% conversion`, color: 'text-green' },
+    { label: 'Free Trial', val: stats.freeTrial.toLocaleString(), change: 'Active trials' },
+    { label: 'Signals Today', val: stats.signalsToday.toLocaleString(), change: 'Last 24h' },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
            <h1 className="text-[21.6px] font-extrabold text-slate-900 tracking-tight">Admin Dashboard</h1>
-           <p className="text-[13.4px] text-slate-500 font-medium mt-0.5">Valo AI Operations · March 21, 2026</p>
+           <p className="text-[13.4px] text-slate-500 font-medium mt-0.5">Valo AI Operations · {new Date().toLocaleDateString()}</p>
         </div>
         <div className="bg-white border border-slate-200 px-3.5 py-1.5 rounded-full text-[11.8px] font-bold text-slate-400 flex items-center gap-2">
            <span className="w-1.5 h-1.5 rounded-full bg-green animate-pulse" /> Live · Auto-refreshing
@@ -130,12 +183,7 @@ function OverviewTab({ setTab }: { setTab: (t: AdminTab) => void }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-         {[
-           { label: 'Total Subscribers', val: '1,418', change: '+34 this week', color: 'text-purple' },
-           { label: 'Paid Active', val: '620', change: '+12 today', color: 'text-green' },
-           { label: 'Free Trial', val: '312', change: '38% conversion' },
-           { label: 'Signals Today', val: '7', change: 'Across 6 pairs' },
-         ].map((kpi, i) => (
+         {kpis.map((kpi, i) => (
            <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
              <div className="text-[12px] font-semibold tracking-wider text-slate-400 uppercase mb-3">{kpi.label}</div>
              <div className={`text-[30.4px] font-extrabold mb-1 tracking-tighter ${kpi.color || 'text-slate-900'}`}>{kpi.val}</div>
@@ -147,9 +195,9 @@ function OverviewTab({ setTab }: { setTab: (t: AdminTab) => void }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
         {[
           { icon: '📡', label: 'Broadcast Signal', sub: 'Push to all subscribers', color: 'bg-linear-to-br from-purple to-purple-dark', tab: 'signals' },
-          { icon: '💸', label: '4 Payout Requests', sub: '$231.40 pending', color: 'bg-linear-to-br from-amber to-amber-500', tab: 'payouts' },
-          { icon: '🏆', label: 'Publish Leaderboard', sub: 'Last published Mar 15', color: 'bg-linear-to-br from-blue-sig to-cyan-500', tab: 'leaderboard' },
-          { icon: '👥', label: 'Subscribers', sub: '620 active paid', color: 'bg-linear-to-br from-green to-emerald-500', tab: 'subscribers' },
+          { icon: '💸', label: `${pendingPayoutsCount} Payout Requests`, sub: 'Pending approval', color: 'bg-linear-to-br from-amber to-amber-500', tab: 'payouts' },
+          { icon: '🏆', label: 'Leaderboard', sub: 'Top referrers', color: 'bg-linear-to-br from-blue-sig to-cyan-500', tab: 'leaderboard' },
+          { icon: '👥', label: 'Subscribers', sub: `${stats.paidActive} active paid`, color: 'bg-linear-to-br from-green to-emerald-500', tab: 'subscribers' },
           { icon: '📈', label: 'Sales Report', sub: 'Daily · Weekly · Monthly', color: 'bg-linear-to-br from-indigo-600 to-purple-mid', tab: 'sales' },
         ].map((action, i) => (
           <button key={i} onClick={() => setTab(action.tab as AdminTab)} className={`${action.color} text-white p-4 rounded-xl text-left shadow-lg hover:-translate-y-1 transition-all active:scale-95`}>
@@ -166,19 +214,18 @@ function OverviewTab({ setTab }: { setTab: (t: AdminTab) => void }) {
            <button onClick={() => setTab('signals')} className="text-[12.5px] font-bold text-purple hover:underline">Broadcast new →</button>
         </div>
         <div className="divide-y divide-slate-100">
-           {[
-             { bias: 'Long', pair: 'BTC/USDT', detail: '$93,200–$95,400 · 3x · TP: $98.4K/$103K/$109K', reach: '620 delivered', time: 'Today 09:10' },
-             { bias: 'Short', pair: 'ETH/USDT', detail: '$3,420–$3,480 · 5x · TP: $3.29K/$3.18K/$3.05K', reach: '831 delivered', time: 'Yesterday 16:28' },
-             { bias: 'Long', pair: 'SOL/USDT', detail: '$182–$188 · 5x · TP: $197/$210/$228', reach: '824 delivered', time: 'Yesterday 11:20' },
-           ].map((bc, i) => (
+           {recentSignals.map((bc, i) => (
              <div key={i} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition-all">
                 <span className={`px-2 py-0.5 text-[10.8px] font-bold rounded-full border ${bc.bias === 'Long' ? 'bg-green-light text-green border-green/20' : 'bg-red-light text-red border-red/20'}`}>{bc.bias}</span>
                 <span className="text-[14px] font-extrabold text-slate-900 min-w-24">{bc.pair}</span>
-                <span className="text-[12.5px] font-medium text-slate-500 flex-1">{bc.detail}</span>
-                <span className="text-[12px] font-bold text-green whitespace-nowrap">{bc.reach}</span>
-                <span className="text-[11.5px] font-bold text-slate-400 whitespace-nowrap ml-4">{bc.time}</span>
+                <span className="text-[12.5px] font-medium text-slate-500 flex-1">{bc.entryZone} · {bc.leverage} · TP: {bc.takeProfits?.join('/')}</span>
+                <span className="text-[12px] font-bold text-green whitespace-nowrap">{bc.broadcastTo}</span>
+                <span className="text-[11.5px] font-bold text-slate-400 whitespace-nowrap ml-4">{bc.createdAt?.toDate ? bc.createdAt.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now'}</span>
              </div>
            ))}
+           {recentSignals.length === 0 && (
+             <div className="p-8 text-center text-slate-400 italic">No signals broadcasted yet.</div>
+           )}
         </div>
       </div>
     </div>
@@ -434,6 +481,35 @@ function SubscribersTab() {
 }
 
 function SalesReportTab() {
+  const [sales, setSales] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'sales'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setSales(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const salesToday = sales.filter(s => s.createdAt?.toDate && s.createdAt.toDate() > today);
+  const totalRevenue = salesToday.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  const allTimeRevenue = sales.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  
+  const planCounts = sales.reduce((acc: any, curr) => {
+    acc[curr.plan] = (acc[curr.plan] || 0) + 1;
+    return acc;
+  }, {});
+
+  const planRevenue = sales.reduce((acc: any, curr) => {
+    acc[curr.plan] = (acc[curr.plan] || 0) + (curr.amount || 0);
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-6">
@@ -450,17 +526,17 @@ function SalesReportTab() {
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: 'Total Revenue', val: '$2,480', sub: 'Today', icon: '💰', color: '#6c35de' },
-          { label: 'New Sales', val: '12', sub: 'Today', icon: '🆕', color: '#059669' },
-          { label: 'Renewals', val: '8', sub: 'Today', icon: '🔄', color: '#2563eb' },
-          { label: 'Avg Order', val: '$124', sub: 'Today', icon: '📊', color: '#d97706' },
-          { icon: '🎟️', label: 'Coupons', val: '5', sub: 'Used today', color: '#0891b2' },
+          { label: 'Revenue Today', val: `$${totalRevenue.toLocaleString()}`, sub: 'Settled', icon: '💰', color: '#6c35de' },
+          { label: 'New Sales', val: salesToday.length.toString(), sub: 'Today', icon: '🆕', color: '#059669' },
+          { label: 'Total Revenue', val: `$${allTimeRevenue.toLocaleString()}`, sub: 'Lifetime', icon: '🔄', color: '#2563eb' },
+          { label: 'Avg Order', val: `$${(allTimeRevenue / (sales.length || 1)).toFixed(0)}`, sub: 'Lifetime', icon: '📊', color: '#d97706' },
+          { icon: '👥', label: 'Customers', val: [...new Set(sales.map(s => s.userId))].length.toString(), sub: 'Unique buyers', color: '#0891b2' },
         ].map((kpi, i) => (
           <div key={i} className="bg-white border border-slate-200 rounded-2xl p-4 relative overflow-hidden shadow-xs border-t-3" style={{ borderTopColor: kpi.color }}>
              <div className="text-[11.2px] font-bold text-slate-400 uppercase tracking-wider mb-2">{kpi.label}</div>
              <div className="text-[24.8px] font-extrabold text-slate-900 tracking-tight leading-none">{kpi.val}</div>
              <div className="text-[11.4px] text-slate-500 mt-2 flex items-center gap-1">
-               <span className="text-green font-bold">▲ 12%</span> vs yesterday
+               <span className="text-green font-bold">Live</span> update
              </div>
              <span className="absolute top-4 right-4 text-[22.4px] opacity-10">{kpi.icon}</span>
           </div>
@@ -468,40 +544,52 @@ function SalesReportTab() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs overflow-hidden">
            <div className="flex justify-between items-center mb-10">
-             <h3 className="text-[14.1px] font-bold text-slate-900">Revenue Today by Hour</h3>
-             <span className="text-[12.8px] font-bold text-slate-400">Total: $2,480</span>
+             <h3 className="text-[14.1px] font-bold text-slate-900">Recent Transactions</h3>
+             <span className="text-[12.8px] font-bold text-slate-400">Total Orders: {sales.length}</span>
            </div>
-           <div className="h-48 flex items-end justify-between gap-2 px-2">
-             {[0, 40, 180, 100, 40, 350, 80, 144, 40].map((v, i) => (
-               <div key={i} className="flex-1 flex flex-col items-center group">
-                 <div className="text-[10.4px] font-bold text-slate-500 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">${v}</div>
-                 <div className={`w-full rounded-t-lg transition-all ${v > 200 ? 'bg-purple' : v > 100 ? 'bg-purple-mid' : 'bg-purple-light'}`} style={{ height: `${(v/400)*100}%`, minHeight: '4px' }} />
-                 <div className="text-[10.6px] font-bold text-slate-400 mt-3">{['6A','8A','10A','12P','2P','4P','6P','8P','10P'][i]}</div>
-               </div>
-             ))}
+           <div className="overflow-x-auto">
+             <table className="w-full text-left">
+               <thead className="border-b border-slate-100">
+                 <tr>
+                   <th className="pb-3 text-[11px] font-bold text-slate-400 uppercase">Customer</th>
+                   <th className="pb-3 text-[11px] font-bold text-slate-400 uppercase">Plan</th>
+                   <th className="pb-3 text-[11px] font-bold text-slate-400 uppercase text-right">Amount</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-50">
+                 {sales.slice(0, 10).map((s, i) => (
+                   <tr key={i}>
+                     <td className="py-3 text-[13px] font-bold text-slate-700">{s.userName}</td>
+                     <td className="py-3 text-[13px] text-slate-500">{s.plan}</td>
+                     <td className="py-3 text-right text-[13.4px] font-mono font-bold text-slate-900">${s.amount}</td>
+                   </tr>
+                 ))}
+                 {sales.length === 0 && (
+                   <tr><td colSpan={3} className="py-10 text-center text-slate-400 italic">No sales recorded yet.</td></tr>
+                 )}
+               </tbody>
+             </table>
            </div>
         </div>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
            <h3 className="text-[13.4px] font-bold text-slate-900 mb-6 uppercase tracking-wider text-slate-400">Revenue by Plan</h3>
            <div className="space-y-3">
-             {[
-               { plan: 'Monthly Pro', count: 355, rev: '$14,200', color: 'bg-purple' },
-               { plan: 'Quarterly', count: 84, rev: '$8,400', color: 'bg-blue-600' },
-               { plan: '6 Months', count: 38, rev: '$6,840', color: 'bg-green' },
-               { plan: 'Yearly', count: 20, rev: '$7,000', color: 'bg-amber' },
-             ].map((p, i) => (
+             {Object.entries(planRevenue).map(([plan, rev]: any, i) => (
                <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className={`w-2 h-2 rounded-full ${p.color}`} />
-                  <div className="flex-1 text-[12.5px] font-bold text-slate-800">{p.plan}</div>
+                  <div className={`w-2 h-2 rounded-full ${i % 3 === 0 ? 'bg-purple' : i % 3 === 1 ? 'bg-blue-600' : 'bg-green'}`} />
+                  <div className="flex-1 text-[12.5px] font-bold text-slate-800">{plan}</div>
                   <div className="text-right">
-                    <div className="text-[12.5px] font-extrabold text-slate-900 font-mono">{p.rev}</div>
-                    <div className="text-[10px] font-bold text-slate-400">{p.count} sales</div>
+                    <div className="text-[12.5px] font-extrabold text-slate-900 font-mono">${rev.toLocaleString()}</div>
+                    <div className="text-[10px] font-bold text-slate-400">{planCounts[plan]} sales</div>
                   </div>
                </div>
              ))}
+             {Object.keys(planRevenue).length === 0 && (
+               <div className="text-center text-slate-400 py-4 italic">No data yet.</div>
+             )}
            </div>
         </div>
       </div>
@@ -510,15 +598,31 @@ function SalesReportTab() {
 }
 
 function ReferralTrackingTab() {
+  const [referrers, setReferrers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Only query users who have at least one referral or some earnings
+    const q = query(collection(db, 'users'), where('isAdmin', '==', false), orderBy('totalEarnings', 'desc'), limit(50));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setReferrers(snapshot.docs.map(doc => doc.data() as UserData));
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const totalEarnings = referrers.reduce((acc, curr) => acc + (curr.totalEarnings || 0), 0);
+  const totalPaid = referrers.reduce((acc, curr) => acc + (curr.totalPaidOut || 0), 0);
+
   return (
     <div className="space-y-6">
       <h2 className="text-[19.2px] font-extrabold text-slate-900 mb-6 flex items-center gap-2">🎁 Referral Commission Tracking</h2>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Referrers', val: '48', sub: '+6 this month', color: 'text-purple' },
-          { label: 'Active Referrals', val: '184', sub: 'Across all plans' },
-          { label: 'Commissions', val: '$1,847', sub: 'This month', color: 'text-green' },
-          { label: 'Pending Payouts', val: '$231', sub: '4 requests', color: 'text-amber' },
+          { label: 'Total Referrers', val: referrers.length.toString(), sub: 'All users with accounts', color: 'text-purple' },
+          { label: 'Active Systems', val: referrers.filter(r => (r.referralCount || 0) > 0).length.toString(), sub: 'With 1+ referrals' },
+          { label: 'Total Payouts', val: `$${totalPaid.toLocaleString()}`, sub: 'All time cleared', color: 'text-green' },
+          { label: 'Life Commissions', val: `$${totalEarnings.toLocaleString()}`, sub: 'Estimated liability', color: 'text-amber' },
         ].map((k, i) => (
           <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
             <div className="text-[10.8px] font-bold text-slate-400 uppercase tracking-widest mb-3">{k.label}</div>
@@ -531,25 +635,24 @@ function ReferralTrackingTab() {
       <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
         <h3 className="text-[14.4px] font-bold text-slate-900 mb-6">Top Performers</h3>
         <div className="divide-y divide-slate-100">
-          {[
-            { name: 'Marcus K.', refs: 12, active: 9, total: '$624.00', balance: '$120.00' },
-            { name: 'Amara O.', refs: 10, active: 8, total: '$480.00', balance: '$54.00' },
-            { name: 'Ravi N.', refs: 9, active: 7, total: '$396.00', balance: '$84.00' },
-          ].map((r, i) => (
+          {referrers.slice(0, 10).map((r, i) => (
             <div key={i} className="py-3.5 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-purple-light flex items-center justify-center font-bold text-purple text-[11px]">{r.name[0]}</div>
+                <div className="w-8 h-8 rounded-full bg-purple-light flex items-center justify-center font-bold text-purple text-[11px]">{r.firstName?.[0]}{r.lastName?.[0]}</div>
                 <div>
-                   <div className="text-[13.6px] font-extrabold text-slate-900">{r.name}</div>
-                   <div className="text-[11.2px] font-bold text-slate-400">{r.refs} referred · {r.active} active</div>
+                   <div className="text-[13.6px] font-extrabold text-slate-900">{r.firstName} {r.lastName}</div>
+                   <div className="text-[11.2px] font-bold text-slate-400">{r.referralCount || 0} active referrals · code: {r.referralCode}</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[14.4px] font-extrabold text-green font-mono">{r.balance}</div>
+                <div className="text-[14.4px] font-extrabold text-green font-mono">${(r.balance || 0).toFixed(2)}</div>
                 <div className="text-[10px] font-bold text-slate-400 uppercase">Available</div>
               </div>
             </div>
           ))}
+          {referrers.length === 0 && !loading && (
+            <div className="py-10 text-center text-slate-400 italic">No referral data yet.</div>
+          )}
         </div>
       </div>
     </div>
@@ -557,47 +660,96 @@ function ReferralTrackingTab() {
 }
 
 function LeaderboardTab() {
+  const [topUsers, setTopUsers] = useState<UserData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const q = query(collection(db, 'users'), where('isAdmin', '==', false), orderBy('totalEarnings', 'desc'), limit(20));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setTopUsers(snapshot.docs.map(doc => doc.data() as UserData));
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const first = topUsers[0];
+  const second = topUsers[1];
+  const third = topUsers[2];
+
   return (
     <div className="space-y-6">
       <h2 className="text-[19.2px] font-extrabold text-slate-900 mb-6 flex items-center gap-2">🏆 Referral Leaderboard</h2>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-end">
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative h-64 flex items-end justify-center gap-0">
-           <div className="flex flex-col items-center gap-2 w-24">
-             <div className="text-[20px]">🥈</div>
-             <div className="w-10 h-10 rounded-full bg-slate-300 flex items-center justify-center text-white font-bold">SO</div>
-             <div className="w-full bg-slate-300 h-24 rounded-t-xl flex flex-col items-center justify-center p-2 text-center">
-                <div className="text-[11.2px] font-bold text-slate-600">Sofia R.</div>
-                <div className="text-[12.8px] font-extrabold text-slate-800">$452</div>
+      
+      {topUsers.length >= 3 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-end">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative h-64 flex items-end justify-center gap-0">
+             {/* 2nd */}
+             <div className="flex flex-col items-center gap-2 w-24">
+               <div className="text-[20px]">🥈</div>
+               <div className="w-10 h-10 rounded-full bg-slate-300 flex items-center justify-center text-white font-bold">{second.firstName?.[0]}{second.lastName?.[0]}</div>
+               <div className="w-full bg-slate-200 h-24 rounded-t-xl flex flex-col items-center justify-center p-2 text-center">
+                  <div className="text-[11.2px] font-bold text-slate-600 truncate w-full">{second.firstName}</div>
+                  <div className="text-[12.8px] font-extrabold text-slate-800">${(second.totalEarnings || 0).toFixed(0)}</div>
+               </div>
              </div>
-           </div>
-           <div className="flex flex-col items-center gap-2 w-28">
-             <div className="text-[28px]">🥇</div>
-             <div className="w-12 h-12 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold border-4 border-white shadow-lg">MK</div>
-             <div className="w-full bg-amber-400 h-36 rounded-t-xl flex flex-col items-center justify-center p-2 text-center shadow-lg">
-                <div className="text-[12px] font-extrabold text-white">Marcus K.</div>
-                <div className="text-[16px] font-black text-white">$624</div>
+             {/* 1st */}
+             <div className="flex flex-col items-center gap-2 w-28">
+               <div className="text-[28px]">🥇</div>
+               <div className="w-12 h-12 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold border-4 border-white shadow-lg">{first.firstName?.[0]}{first.lastName?.[0]}</div>
+               <div className="w-full bg-amber-400 h-36 rounded-t-xl flex flex-col items-center justify-center p-2 text-center shadow-lg">
+                  <div className="text-[12px] font-extrabold text-white truncate w-full">{first.firstName}</div>
+                  <div className="text-[16px] font-black text-white">${(first.totalEarnings || 0).toFixed(0)}</div>
+               </div>
              </div>
-           </div>
-           <div className="flex flex-col items-center gap-2 w-24">
-             <div className="text-[20px]">🥉</div>
-             <div className="w-10 h-10 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold">RN</div>
-             <div className="w-full bg-amber-700 h-20 rounded-t-xl flex flex-col items-center justify-center p-2 text-center">
-                <div className="text-[11.2px] font-bold text-white">Ravi N.</div>
-                <div className="text-[12.8px] font-extrabold text-white">$396</div>
+             {/* 3rd */}
+             <div className="flex flex-col items-center gap-2 w-24">
+               <div className="text-[20px]">🥉</div>
+               <div className="w-10 h-10 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold">{third.firstName?.[0]}{third.lastName?.[0]}</div>
+               <div className="w-full bg-amber-600 h-20 rounded-t-xl flex flex-col items-center justify-center p-2 text-center">
+                  <div className="text-[11.2px] font-bold text-white truncate w-full">{third.firstName}</div>
+                  <div className="text-[12.8px] font-extrabold text-white">${(third.totalEarnings || 0).toFixed(0)}</div>
+               </div>
              </div>
-           </div>
-        </div>
+          </div>
 
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs h-64">
-           <h3 className="text-[14.1px] font-bold text-slate-900 mb-6 tracking-tight">📣 Publish Leaderboard</h3>
-           <p className="text-[12.8px] text-slate-500 mb-6 leading-relaxed font-medium">Share the leaderboard with your community. Select cadence and channel — preview updates in real time.</p>
-           <div className="space-y-3">
-             <button className="w-full py-2.5 bg-slate-900 text-white rounded-lg text-[13.6px] font-bold shadow-lg hover:shadow-black/10 flex items-center justify-center gap-2">
-               🚀 Publish Now to All Channels
-             </button>
-             <div className="text-[11.2px] text-slate-400 text-center font-bold">Auto-publish: Weekly · Mon 9AM</div>
-           </div>
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs h-64">
+             <h3 className="text-[14.1px] font-bold text-slate-900 mb-6 tracking-tight">📣 Publish Leaderboard</h3>
+             <p className="text-[12.8px] text-slate-500 mb-6 leading-relaxed font-medium">Share the leaderboard with your community. Select cadence and channel — preview updates in real time.</p>
+             <div className="space-y-3">
+               <button className="w-full py-2.5 bg-slate-900 text-white rounded-lg text-[13.6px] font-bold shadow-lg hover:shadow-black/10 flex items-center justify-center gap-2">
+                 🚀 Publish Now to All Channels
+               </button>
+               <div className="text-[11.2px] text-slate-400 text-center font-bold">Auto-publish: Weekly · Mon 9AM</div>
+             </div>
+          </div>
         </div>
+      ) : (
+        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center text-slate-500 italic">
+          Waiting for more referral data to populate the podium...
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+        <table className="w-full text-left">
+          <thead className="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase">Rank</th>
+              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase">Trader</th>
+              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase">Total Referrals</th>
+              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase text-right">Total Earned</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {topUsers.map((user, i) => (
+              <tr key={i} className="hover:bg-slate-50/50">
+                <td className="px-6 py-4 font-black text-slate-400">#{i + 1}</td>
+                <td className="px-6 py-4 font-bold text-slate-900">{user.firstName} {user.lastName}</td>
+                <td className="px-6 py-4 text-slate-600 font-medium">{user.referralCount || 0} users</td>
+                <td className="px-6 py-4 text-right font-mono font-bold text-green">${(user.totalEarnings || 0).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

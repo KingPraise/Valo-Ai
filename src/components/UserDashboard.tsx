@@ -154,7 +154,7 @@ function Overview() {
                 {userData?.plan === 'free' ? 'Trial Plan' : `${userData?.plan} Plan`}
               </span>
               <h3 className="text-[17.6px] font-extrabold mb-1">
-                {userData?.plan === 'free' ? 'Valo Pro Trial' : `Subscription: ${userData?.plan}`}
+                {userData?.plan === 'free' ? 'Valo Pro Trial' : `Subscription: ${userData?.plan.charAt(0).toUpperCase()}${userData?.plan.slice(1)}`}
               </h3>
               <p className="text-[12.5px] opacity-75 mb-6">
                 Status: <span className="capitalize">{userData?.status || 'Active'}</span>

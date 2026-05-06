@@ -4,7 +4,7 @@ import { Check, ArrowRight, Smartphone, MessageSquare, ShieldCheck, Zap } from '
 import { Link, useNavigate } from 'react-router-dom';
 
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { SubscriptionStatus } from '../types';
 
@@ -33,7 +33,17 @@ export default function SignupPage() {
       
       // Get referral code from URL if exists
       const urlParams = new URLSearchParams(window.location.search);
-      const referrerCode = urlParams.get('ref');
+      const referrerCodeInput = urlParams.get('ref');
+      let referrerId = null;
+
+      if (referrerCodeInput) {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('referralCode', '==', referrerCodeInput), limit(1));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          referrerId = querySnapshot.docs[0].id;
+        }
+      }
 
       const referralCode = user.uid.substring(0, 5).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
       
@@ -48,10 +58,15 @@ export default function SignupPage() {
         status: SubscriptionStatus.TRIAL,
         trialExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         planExpiresAt: null,
-        referrerId: referrerCode || null,
+        referrerId: referrerId,
         referralCode,
         isAdmin: false,
         createdAt: serverTimestamp(),
+        // Initialize balance and earnings
+        balance: 0,
+        totalEarnings: 0,
+        totalPaidOut: 0,
+        referralCount: 0
       };
 
       await setDoc(doc(db, 'users', user.uid), userData);

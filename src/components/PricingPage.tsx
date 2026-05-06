@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Check, X, Shield, Zap, TrendingUp, Gift, Lock, Smartphone } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import CheckoutModal from './CheckoutModal';
+import { useAuth } from '../context/AuthContext';
 
 const plans = [
   {
@@ -104,10 +106,34 @@ const plans = [
 ];
 
 export default function PricingPage() {
+  const { user, userData } = useAuth();
+  const navigate = useNavigate();
   const [referrals, setReferrals] = useState(25);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
   const monthlyProPrice = 40;
   const commissionRate = 0.3;
   const earnings = Math.round(referrals * monthlyProPrice * commissionRate);
+
+  const handlePlanSelect = (plan: any) => {
+    if (plan.price === '0') {
+      if (!user) {
+        navigate('/signup');
+      } else {
+        navigate('/dashboard');
+      }
+      return;
+    }
+
+    if (!user) {
+      navigate(`/signup?plan=${plan.title.toLowerCase()}`);
+      return;
+    }
+
+    setSelectedPlan(plan);
+    setIsCheckoutOpen(true);
+  };
 
   return (
     <div className="bg-slate-50 min-h-screen pb-24">
@@ -185,11 +211,14 @@ export default function PricingPage() {
                  ))}
                </div>
 
-               <button className={`mt-10 rounded-full py-4 px-6 text-sm font-black transition-all active:scale-95 ${
-                 plan.featured 
-                   ? 'bg-purple text-white shadow-xl shadow-purple/20 hover:bg-purple-dark' 
-                   : 'border-2 border-slate-200 text-slate-700 hover:border-purple hover:text-purple h-14'
-               }`}>
+               <button 
+                 onClick={() => handlePlanSelect(plan)}
+                 className={`mt-10 rounded-full py-4 px-6 text-sm font-black transition-all active:scale-95 ${
+                   plan.featured 
+                     ? 'bg-purple text-white shadow-xl shadow-purple/20 hover:bg-purple-dark' 
+                     : 'border-2 border-slate-200 text-slate-700 hover:border-purple hover:text-purple h-14 w-full'
+                 }`}
+               >
                  {plan.cta}
                </button>
              </motion.div>
@@ -334,6 +363,12 @@ export default function PricingPage() {
               </div>
            </div>
         </section>
+
+        <CheckoutModal 
+          isOpen={isCheckoutOpen} 
+          onClose={() => setIsCheckoutOpen(false)} 
+          plan={selectedPlan} 
+        />
       </div>
     </div>
   );
