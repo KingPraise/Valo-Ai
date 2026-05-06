@@ -209,151 +209,85 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SIGNAL FORMAT */}
-      <section className="border-y border-slate-200 bg-slate-50 py-24 sm:py-32">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* SIGNAL FORMAT - PURPLE THEME */}
+      <section className="bg-purple py-24 sm:py-32 relative overflow-hidden">
+        <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-white/5" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 items-center gap-16 lg:grid-cols-2">
-            <div>
-              <span className="mb-4 inline-block rounded-full bg-purple-light px-4 py-1 text-xs font-bold tracking-widest text-purple uppercase">Signal Format</span>
-              <h2 className="mb-8 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:leading-tight">Every field you need.<br/>Nothing left to figure out.</h2>
-              <p className="mb-10 text-lg leading-relaxed text-slate-500">Every Valo AI signal arrives complete and structured — pushed straight to your WhatsApp. No charts to read. No calculations to do.</p>
+            <div className="order-2 lg:order-1">
+              <span className="mb-4 inline-block rounded-full bg-white/15 px-4 py-1 text-xs font-bold tracking-widest text-white uppercase">Signal Format</span>
+              <h2 className="mb-8 text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:leading-tight">What every Valo AI signal looks like.</h2>
+              <p className="mb-10 text-lg leading-relaxed text-purple-light/80">Complete. Structured. Ready to act on. Every field you need to execute a professional trade setup — delivered automatically to your WhatsApp the moment it's ready.</p>
               
-              <div className="rounded-3xl bg-white p-8 shadow-xl shadow-slate-200/50">
+              <div className="space-y-6">
+                {[
+                  { label: 'Trade Bias + Entry Zone', desc: 'Direction and where to open the trade scale' },
+                  { label: 'Stop Loss', desc: 'Your defined max loss to protect your capital' },
+                  { label: 'Triple Take Profit', desc: 'Three levels to scale out and lock in gains' },
+                  { label: 'Smart Leverage', desc: 'Calibrated sizing based on setup risk distance' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-4">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px] text-white">→</div>
+                    <div>
+                      <h4 className="font-bold text-white leading-tight">{item.label}</h4>
+                      <p className="text-sm text-purple-light/70">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="order-1 lg:order-2 flex justify-center">
+              <div className="w-full max-w-sm rounded-[32px] bg-white p-8 shadow-2xl">
                 <div className="mb-6 flex items-center justify-between border-b border-slate-100 pb-6">
-                  <span className="text-xl font-extrabold text-slate-900">TREE/USDT</span>
-                  <span className="rounded-full bg-green-50 px-4 py-1 text-xs font-bold tracking-widest text-green-600 uppercase ring-1 ring-green-500/20">Long</span>
+                  <span className="text-xl font-extrabold text-slate-900 leading-none">TREE/USDT</span>
+                  <span className="rounded-full bg-green-50 px-4 py-1 text-xs font-bold tracking-widest text-green-600 uppercase border border-green-500/10">Long</span>
                 </div>
                 <div className="space-y-4">
                   {[
                     { label: 'Entry Zone', val: '$0.265 – $0.272' },
                     { label: 'Stop Loss', val: '$0.249', color: 'text-rose-500' },
-                    { label: 'TP 1', val: '$0.281', color: 'text-blue-500' },
+                    { label: 'Take Profit 1', val: '$0.281', color: 'text-blue-500' },
+                    { label: 'Take Profit 2', val: '$0.289', color: 'text-blue-500' },
+                    { label: 'Take Profit 3', val: '$0.301', color: 'text-blue-500' },
                     { label: 'Leverage', val: '5x Cross' },
                     { label: 'Position Size', val: '10–15%' },
+                    { label: 'Risk Rule', val: 'Max 2 trades', color: 'text-amber-600' },
                   ].map((row, i) => (
-                    <div key={i} className="flex items-center justify-between border-b border-slate-50 pb-4 last:border-0 last:pb-0">
-                      <span className="text-sm font-medium text-slate-400">{row.label}</span>
-                      <span className={`font-mono text-sm font-bold ${row.color || 'text-slate-900'}`}>{row.val}</span>
+                    <div key={i} className="flex items-center justify-between border-b border-slate-50 last:border-0 pb-3">
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">{row.label}</span>
+                      <span className={`font-mono text-[13px] font-black ${row.color || 'text-slate-900'}`}>{row.val}</span>
                     </div>
                   ))}
-                  <div className="mt-4 flex items-center justify-between rounded-xl bg-amber-50 px-4 py-3">
-                    <span className="text-xs font-bold text-amber-700">Risk Rule</span>
-                    <span className="text-xs font-black text-amber-700 uppercase tracking-tighter">Max 2 trades · 20% total</span>
-                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col items-center">
-              <div className="relative max-w-sm overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-2xl">
-                 <div className="bg-[#075e54] px-4 py-3 flex items-center gap-3 text-white">
-                    <div className="h-9 w-9 bg-linear-to-br from-emerald-500 to-green-400 rounded-full flex items-center justify-center font-bold text-xs ring-1 ring-white/20">VA</div>
-                    <div className="flex-1">
-                      <div className="text-sm font-bold">Valo AI Signals</div>
-                      <div className="text-[10px] text-white/70">● Online</div>
-                    </div>
-                 </div>
-                 <div className="bg-[#e5ddd5] p-6 h-[500px] flex flex-col gap-4 overflow-y-auto">
-                    <div className="self-center bg-white/40 backdrop-blur-sm px-3 py-1 rounded text-[10px] text-slate-600 font-medium">🔔 New broadcast</div>
-                    <div className="bg-white rounded-br-2xl rounded-tl-2xl rounded-bl-2xl p-4 shadow-sm max-w-[90%] border-t border-r border-[#6c35de]/10 relative group">
-                        <div className="text-xs font-bold text-green-500 mb-2">📊 TREE/USDT Signal</div>
-                        <div className="space-y-1.5">
-                           <div className="flex justify-between text-[11px] border-b border-slate-100 pb-1.5">
-                              <span className="text-slate-400 font-medium">Bias</span>
-                              <span className="text-green-600 font-black">Long</span>
-                           </div>
-                           <div className="flex justify-between text-[11px] border-b border-slate-100 pb-1.5">
-                              <span className="text-slate-400 font-medium">Entry</span>
-                              <span className="text-slate-900 font-mono font-bold">$0.265–$0.272</span>
-                           </div>
-                           <div className="flex justify-between text-[11px] border-b border-slate-100 pb-1.5">
-                              <span className="text-slate-400 font-medium">Stop</span>
-                              <span className="text-rose-500 font-mono font-bold">$0.249</span>
-                           </div>
-                           <div className="flex justify-between text-[11px] border-b border-slate-100 pb-1.5">
-                              <span className="text-slate-400 font-medium">Take Profit</span>
-                              <span className="text-blue-500 font-mono font-bold">$0.281 / $0.289</span>
-                           </div>
-                        </div>
-                        <div className="mt-3 text-right text-[9px] text-slate-400 italic">auto-delivered ✓✓</div>
-                    </div>
-                 </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* WHAT IS VALOAI - BENTO GRID */}
-      <section id="features" className="scroll-mt-32 bg-white py-24 sm:py-32 overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-20 text-center">
-            <span className="mb-4 inline-block rounded-full bg-purple-light px-4 py-1 text-xs font-bold tracking-widest text-purple uppercase">The Platform</span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">What is ValoAi?</h2>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-500">More than just signals — a complete crypto intelligence ecosystem.</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            {/* Main Feature */}
-            <div className="lg:col-span-1 rounded-[32px] bg-slate-900 p-8 text-white relative overflow-hidden group h-full min-h-[400px]">
-              <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 transition-opacity">
-                <Target size={120} strokeWidth={1} className="text-purple-light" />
-              </div>
-              <div className="relative z-10 h-full flex flex-col">
-                <div className="mb-auto">
-                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-purple/20 text-purple ring-1 ring-purple/50">
-                    <Target size={24} />
-                  </div>
-                  <h3 className="mb-4 text-2xl font-bold">Professional signals</h3>
-                  <p className="text-slate-400">Receive precise buy & sell signals, complete with entry zone, multiple profit targets, and stop loss. No more second-guessing.</p>
+      {/* GUARANTEE SECTION */}
+      <section className="bg-purple-light/30 py-24 sm:py-32">
+        <div className="mx-auto max-w-4xl px-4 text-center">
+           <div className="mb-10 inline-flex h-20 w-20 items-center justify-center rounded-full bg-white text-purple shadow-xl shadow-purple/10">
+              <ShieldCheck size={40} strokeWidth={1.5} />
+           </div>
+           <h2 className="mb-6 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">Signals you'll trust. Guaranteed.</h2>
+           <p className="mb-12 text-lg leading-relaxed text-slate-600">Every signal that reaches your WhatsApp has passed our multi-indicator confluence threshold. If you're not seeing quality within your first 7 days, your trial costs nothing. Start free, stay only when it's working for you.</p>
+           
+           <div className="flex flex-wrap justify-center gap-4">
+              {[
+                'No credit card required',
+                'Cancel anytime',
+                'Full access (day 1)',
+                'Risk-managed setups'
+              ].map((badge, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-full border border-purple/20 bg-white px-5 py-2 text-sm font-bold text-slate-700">
+                  <Check size={14} className="text-green-500" />
+                  {badge}
                 </div>
-                <div className="mt-8">
-                   <Link to="/signup" className="inline-flex items-center gap-2 font-bold text-purple-light hover:underline">Get signals <ArrowRight size={16} /></Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Support */}
-            <div className="lg:col-span-1 rounded-[32px] bg-[#f8f6ff] border border-purple/5 p-8 text-slate-900 group h-full">
-              <div className="h-full flex flex-col">
-                <div className="mb-8">
-                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white text-purple shadow-sm ring-1 ring-purple/10">
-                    <MessageSquare size={24} />
-                  </div>
-                  <h3 className="mb-4 text-2xl font-bold">Expert support</h3>
-                  <p className="text-slate-500 mb-6 font-medium">1-on-1 human guidance within 15 minutes. Not a bot. Professional traders ready to help.</p>
-                  
-                  <div className="space-y-3">
-                    {['Strategic advice', 'Market analysis', 'Signal clarfication'].map((item, i) => (
-                      <div key={i} className="flex items-center gap-2 text-sm text-slate-600">
-                        <Check size={14} className="text-purple" />
-                        <span>{item}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Learning/Coaching */}
-            <div className="lg:col-span-1 rounded-[32px] bg-white border border-slate-100 p-8 text-slate-900 flex flex-col h-full shadow-[0_20px_50px_rgba(0,0,0,0.03)]">
-               <div className="mb-8">
-                  <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 text-slate-900 ring-1 ring-slate-200">
-                    <TrendingUp size={24} />
-                  </div>
-                  <h3 className="mb-4 text-2xl font-bold">Trading education</h3>
-                  <p className="text-slate-500">Access exclusive educational notes and mid-trade coaching to master the "why" behind every signal.</p>
-               </div>
-               <div className="mt-auto pt-6 border-t border-slate-50">
-                  <div className="flex items-center gap-3">
-                    <div className="flex -space-x-2">
-                       {[1,2,3].map(i => <div key={i} className="h-8 w-8 rounded-full border-2 border-white bg-slate-200" />)}
-                    </div>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Expert coaches online</span>
-                  </div>
-               </div>
-            </div>
-          </div>
+              ))}
+           </div>
         </div>
       </section>
 

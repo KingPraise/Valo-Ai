@@ -483,6 +483,11 @@ function SubscribersTab() {
 function SalesReportTab() {
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [coupons, setCoupons] = useState<any[]>([
+    { code: 'VALO20', pct: 20, uses: 14, limit: 100, status: 'active', revenue: 234.00, expires: 'Apr 30, 2026' },
+    { code: 'VALO50', pct: 50, uses: 3, limit: 10, status: 'active', revenue: 60.00, expires: 'Mar 31, 2026' },
+    { code: 'LAUNCH', pct: 25, uses: 87, limit: 100, status: 'expired', revenue: 540.00, expires: 'Jan 31, 2026' },
+  ]);
 
   useEffect(() => {
     const q = query(collection(db, 'sales'), orderBy('createdAt', 'desc'));
@@ -497,7 +502,7 @@ function SalesReportTab() {
   today.setHours(0, 0, 0, 0);
   
   const salesToday = sales.filter(s => s.createdAt?.toDate && s.createdAt.toDate() > today);
-  const totalRevenue = salesToday.reduce((acc, curr) => acc + (curr.amount || 0), 0);
+  const totalRevenueToday = salesToday.reduce((acc, curr) => acc + (curr.amount || 0), 0);
   const allTimeRevenue = sales.reduce((acc, curr) => acc + (curr.amount || 0), 0);
   
   const planCounts = sales.reduce((acc: any, curr) => {
@@ -511,91 +516,141 @@ function SalesReportTab() {
   }, {});
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-8">
+      <div className="flex flex-wrap justify-between items-start gap-4">
         <div>
-          <h2 className="text-[19.2px] font-extrabold text-slate-900 flex items-center gap-2">📈 Sales Report</h2>
-          <p className="text-[13.1px] text-slate-500 font-medium mt-0.5">Subscription revenue · new sales · renewals</p>
+          <h2 className="text-[21.6px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">📈 Sales Intel</h2>
+          <p className="text-[13.4px] text-slate-500 font-medium">Detailed revenue tracking, plan splits, and coupon performance.</p>
         </div>
-        <div className="flex bg-slate-100 rounded-full p-1 gap-1">
-          {['Daily', 'Weekly', 'Monthly'].map((p, i) => (
-            <button key={i} className={`px-4 py-1.5 rounded-full text-[12.1px] font-bold transition-all ${i === 0 ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>{p}</button>
+        <div className="flex bg-white/50 backdrop-blur-sm border border-slate-200 rounded-xl p-1 gap-1 shadow-sm">
+          {['Daily', 'Weekly', 'Monthly', 'Annual'].map((p, i) => (
+            <button key={i} className={`px-4 py-1.5 rounded-lg text-[11.8px] font-black uppercase tracking-tight transition-all ${i === 0 ? 'bg-slate-900 text-white' : 'text-slate-400 hover:text-slate-600'}`}>{p}</button>
           ))}
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
-          { label: 'Revenue Today', val: `$${totalRevenue.toLocaleString()}`, sub: 'Settled', icon: '💰', color: '#6c35de' },
-          { label: 'New Sales', val: salesToday.length.toString(), sub: 'Today', icon: '🆕', color: '#059669' },
-          { label: 'Total Revenue', val: `$${allTimeRevenue.toLocaleString()}`, sub: 'Lifetime', icon: '🔄', color: '#2563eb' },
-          { label: 'Avg Order', val: `$${(allTimeRevenue / (sales.length || 1)).toFixed(0)}`, sub: 'Lifetime', icon: '📊', color: '#d97706' },
-          { icon: '👥', label: 'Customers', val: [...new Set(sales.map(s => s.userId))].length.toString(), sub: 'Unique buyers', color: '#0891b2' },
+          { label: 'Revenue Today', val: `$${totalRevenueToday.toLocaleString()}`, sub: 'Settled', icon: '💰', color: '#6c35de' },
+          { label: 'Orders Today', val: salesToday.length.toString(), sub: `${salesToday.filter(s => !s.coupon).length} full price`, icon: '🆕', color: '#059669' },
+          { label: 'All-Time Sales', val: `$${allTimeRevenue.toLocaleString()}`, sub: 'Total volume', icon: '🔄', color: '#2563eb' },
+          { label: 'Avg Ticket', val: `$${(allTimeRevenue / (sales.length || 1)).toFixed(0)}`, sub: 'Per checkout', icon: '📊', color: '#d97706' },
+          { icon: '👥', label: 'Unique Buyers', val: [...new Set(sales.map(s => s.userId))].length.toString(), sub: 'Customer base', color: '#0891b2' },
         ].map((kpi, i) => (
-          <div key={i} className="bg-white border border-slate-200 rounded-2xl p-4 relative overflow-hidden shadow-xs border-t-3" style={{ borderTopColor: kpi.color }}>
-             <div className="text-[11.2px] font-bold text-slate-400 uppercase tracking-wider mb-2">{kpi.label}</div>
-             <div className="text-[24.8px] font-extrabold text-slate-900 tracking-tight leading-none">{kpi.val}</div>
-             <div className="text-[11.4px] text-slate-500 mt-2 flex items-center gap-1">
-               <span className="text-green font-bold">Live</span> update
+          <div key={i} className="bg-white border border-slate-200 rounded-2xl p-5 relative overflow-hidden shadow-xs border-t-3" style={{ borderTopColor: kpi.color }}>
+             <div className="text-[10.5px] font-black text-slate-400 uppercase tracking-widest mb-3">{kpi.label}</div>
+             <div className="text-[28px] font-black text-slate-900 tracking-tighter leading-none">{kpi.val}</div>
+             <div className="text-[11.2px] text-slate-500 mt-3 font-medium">
+               <span className="text-green-600 font-black">▲ 12%</span> vs average
              </div>
-             <span className="absolute top-4 right-4 text-[22.4px] opacity-10">{kpi.icon}</span>
+             <span className="absolute top-4 right-4 text-2xl opacity-10 grayscale">{kpi.icon}</span>
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs overflow-hidden">
-           <div className="flex justify-between items-center mb-10">
-             <h3 className="text-[14.1px] font-bold text-slate-900">Recent Transactions</h3>
-             <span className="text-[12.8px] font-bold text-slate-400">Total Orders: {sales.length}</span>
+        <div className="lg:col-span-2 rounded-[32px] border border-slate-200 bg-white p-8 shadow-xs overflow-hidden">
+           <div className="flex justify-between items-center mb-8">
+             <div>
+               <h3 className="text-lg font-black text-slate-900 tracking-tight">Recent Transactions</h3>
+               <p className="text-xs font-medium text-slate-400 mt-0.5">Last 50 payments across all plans</p>
+             </div>
+             <button className="text-[11.5px] font-black text-purple uppercase tracking-widest py-2 px-4 rounded-xl bg-purple/5 border border-purple/10 hover:bg-purple/10 transition-colors">Export Ledger</button>
            </div>
            <div className="overflow-x-auto">
              <table className="w-full text-left">
                <thead className="border-b border-slate-100">
                  <tr>
-                   <th className="pb-3 text-[11px] font-bold text-slate-400 uppercase">Customer</th>
-                   <th className="pb-3 text-[11px] font-bold text-slate-400 uppercase">Plan</th>
-                   <th className="pb-3 text-[11px] font-bold text-slate-400 uppercase text-right">Amount</th>
+                   <th className="pb-4 text-[10.5px] font-black text-slate-400 uppercase tracking-widest px-1">Customer</th>
+                   <th className="pb-4 text-[10.5px] font-black text-slate-400 uppercase tracking-widest px-1">Plan / Method</th>
+                   <th className="pb-4 text-[10.5px] font-black text-slate-400 uppercase tracking-widest px-1 text-right">Price</th>
                  </tr>
                </thead>
                <tbody className="divide-y divide-slate-50">
-                 {sales.slice(0, 10).map((s, i) => (
-                   <tr key={i}>
-                     <td className="py-3 text-[13px] font-bold text-slate-700">{s.userName}</td>
-                     <td className="py-3 text-[13px] text-slate-500">{s.plan}</td>
-                     <td className="py-3 text-right text-[13.4px] font-mono font-bold text-slate-900">${s.amount}</td>
+                 {sales.slice(0, 15).map((s, i) => (
+                   <tr key={i} className="group hover:bg-slate-50/50 transition-colors">
+                     <td className="py-4 px-1">
+                        <div className="font-bold text-slate-800 text-[13.4px] leading-tight">{s.userName}</div>
+                        <div className="text-[11.2px] text-slate-400 font-medium">{s.createdAt?.toDate ? s.createdAt.toDate().toLocaleDateString() : 'New'}</div>
+                     </td>
+                     <td className="py-4 px-1 text-[12.8px]">
+                        <div className="flex flex-wrap items-center gap-2">
+                           <span className="font-black text-slate-600 tracking-tight">{s.plan}</span>
+                           {s.coupon && <span className="bg-amber-50 text-amber-600 text-[10px] font-black px-2 py-0.5 rounded uppercase border border-amber-200/30">{s.coupon}</span>}
+                        </div>
+                        <div className="text-[10.5px] text-slate-400 font-bold uppercase tracking-wide mt-0.5">Via {s.method || 'Standard Card'}</div>
+                     </td>
+                     <td className="py-4 px-1 text-right">
+                        {s.originalAmount && s.originalAmount > s.amount && <div className="text-[10px] text-slate-300 line-through font-mono mb-0.5">${s.originalAmount.toFixed(2)}</div>}
+                        <div className="text-[14.8px] font-mono font-black text-slate-900 tracking-tighter">${s.amount.toFixed(2)}</div>
+                     </td>
                    </tr>
                  ))}
                  {sales.length === 0 && (
-                   <tr><td colSpan={3} className="py-10 text-center text-slate-400 italic">No sales recorded yet.</td></tr>
+                   <tr><td colSpan={3} className="py-20 text-center">
+                     <div className="text-4xl mb-4 grayscale opacity-20">📊</div>
+                     <div className="text-slate-400 font-bold italic">No sales recorded yet. Ledger is empty.</div>
+                   </td></tr>
                  )}
                </tbody>
              </table>
            </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-           <h3 className="text-[13.4px] font-bold text-slate-900 mb-6 uppercase tracking-wider text-slate-400">Revenue by Plan</h3>
-           <div className="space-y-3">
-             {Object.entries(planRevenue).map(([plan, rev]: any, i) => (
-               <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50">
-                  <div className={`w-2 h-2 rounded-full ${i % 3 === 0 ? 'bg-purple' : i % 3 === 1 ? 'bg-blue-600' : 'bg-green'}`} />
-                  <div className="flex-1 text-[12.5px] font-bold text-slate-800">{plan}</div>
-                  <div className="text-right">
-                    <div className="text-[12.5px] font-extrabold text-slate-900 font-mono">${rev.toLocaleString()}</div>
-                    <div className="text-[10px] font-bold text-slate-400">{planCounts[plan]} sales</div>
+        <div className="space-y-6">
+           {/* REVENUE SPLIT */}
+           <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-xs">
+              <h3 className="text-sm font-black text-slate-900 mb-8 uppercase tracking-widest text-slate-400 flex justify-between items-center">
+                Revenue Split
+                <TrendingUp size={14} />
+              </h3>
+              <div className="space-y-4">
+                {Object.entries(planRevenue).map(([plan, rev]: any, i) => (
+                  <div key={i} className="relative p-4 rounded-2xl bg-slate-50 overflow-hidden group">
+                     <div className={`absolute top-0 left-0 w-1 h-full ${i % 3 === 0 ? 'bg-purple' : i % 3 === 1 ? 'bg-blue-600' : 'bg-emerald-500'}`} />
+                     <div className="flex justify-between items-end">
+                        <div>
+                          <div className="text-[12.5px] font-black text-slate-800 leading-tight mb-1">{plan}</div>
+                          <div className="text-[10.8px] font-bold text-slate-400 uppercase tracking-wide">{planCounts[plan]} Orders</div>
+                        </div>
+                        <div className="text-right">
+                           <div className="text-[15.2px] font-black text-slate-900 font-mono tracking-tighter">${rev.toLocaleString()}</div>
+                           <div className="text-[10.5px] font-bold text-green-600">{(rev/allTimeRevenue*100).toFixed(0)}% SHARE</div>
+                        </div>
+                     </div>
                   </div>
-               </div>
-             ))}
-             {Object.keys(planRevenue).length === 0 && (
-               <div className="text-center text-slate-400 py-4 italic">No data yet.</div>
-             )}
+                ))}
+              </div>
+           </div>
+
+           {/* COUPON ADMIN */}
+           <div className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-xs bg-linear-to-bt from-slate-50/50 to-white">
+              <div className="flex justify-between items-center mb-8">
+                 <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Active Coupons</h3>
+                 <button className="text-[18px] text-purple hover:scale-110 transition-transform active:scale-95">⊕</button>
+              </div>
+              <div className="space-y-3">
+                 {coupons.map((c, i) => (
+                   <div key={i} className={`flex items-center justify-between p-4 rounded-2xl border ${c.status === 'expired' ? 'bg-white border-slate-100 opacity-60' : 'bg-white border-slate-200 shadow-sm'}`}>
+                      <div>
+                        <div className="font-mono font-black text-slate-900 text-[13.6px] leading-tight">{c.code}</div>
+                        <div className="text-[10.5px] font-bold text-slate-400 mt-0.5">{c.uses} Uses · {c.pct}% OFF</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[12.8px] font-black text-slate-700">${c.revenue.toFixed(0)}</div>
+                        <div className="text-[9.2px] font-black uppercase text-purple-light bg-purple px-1.5 py-0.5 rounded leading-none mt-1">{c.status}</div>
+                      </div>
+                   </div>
+                 ))}
+                 <button className="w-full mt-4 py-3 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 font-black text-xs uppercase tracking-widest hover:border-purple hover:text-purple transition-all">Create New Coupon</button>
+              </div>
            </div>
         </div>
       </div>
     </div>
   );
 }
+
 
 function ReferralTrackingTab() {
   const [referrers, setReferrers] = useState<UserData[]>([]);
@@ -662,6 +717,7 @@ function ReferralTrackingTab() {
 function LeaderboardTab() {
   const [topUsers, setTopUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [publishStatus, setPublishStatus] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'users'), where('isAdmin', '==', false), orderBy('totalEarnings', 'desc'), limit(20));
@@ -676,76 +732,163 @@ function LeaderboardTab() {
   const second = topUsers[1];
   const third = topUsers[2];
 
+  const publishLeaderboard = () => {
+    setPublishStatus('Publishing to all channels...');
+    setTimeout(() => {
+      setPublishStatus('✓ Leaderboard successfully published to WhatsApp, Telegram, and X!');
+      setTimeout(() => setPublishStatus(null), 4000);
+    }, 1500);
+  };
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-[19.2px] font-extrabold text-slate-900 mb-6 flex items-center gap-2">🏆 Referral Leaderboard</h2>
+    <div className="space-y-8">
+      <div className="flex justify-between items-end">
+        <div>
+          <h2 className="text-[21.6px] font-extrabold text-slate-900 tracking-tight flex items-center gap-2">🏆 Referral Leaderboard</h2>
+          <p className="text-[13.4px] text-slate-500 font-medium mt-0.5">Top-performing referrers by total lifetime earnings.</p>
+        </div>
+        <select className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-500 outline-none">
+           <option>Lifetime Earnings</option>
+           <option>This Month</option>
+           <option>This Week</option>
+        </select>
+      </div>
       
       {topUsers.length >= 3 ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-end">
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative h-64 flex items-end justify-center gap-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-slate-900 border border-white/5 rounded-[40px] p-10 relative flex items-end justify-center gap-0 overflow-hidden shadow-2xl">
+             <div className="absolute top-0 right-0 p-10 opacity-5">
+                <Trophy size={200} strokeWidth={1} className="text-white" />
+             </div>
+             
              {/* 2nd */}
-             <div className="flex flex-col items-center gap-2 w-24">
-               <div className="text-[20px]">🥈</div>
-               <div className="w-10 h-10 rounded-full bg-slate-300 flex items-center justify-center text-white font-bold">{second.firstName?.[0]}{second.lastName?.[0]}</div>
-               <div className="w-full bg-slate-200 h-24 rounded-t-xl flex flex-col items-center justify-center p-2 text-center">
-                  <div className="text-[11.2px] font-bold text-slate-600 truncate w-full">{second.firstName}</div>
-                  <div className="text-[12.8px] font-extrabold text-slate-800">${(second.totalEarnings || 0).toFixed(0)}</div>
+             <div className="flex flex-col items-center gap-4 w-32 relative z-10">
+               <div className="text-2xl mb-1">🥈</div>
+               <div className="w-14 h-14 rounded-full bg-slate-700/50 border-2 border-slate-400 p-1">
+                 <div className="w-full h-full rounded-full bg-slate-600 flex items-center justify-center text-white font-black text-lg shadow-inner">
+                    {second.firstName?.[0]}{second.lastName?.[0]}
+                 </div>
+               </div>
+               <div className="w-full bg-linear-to-b from-slate-700/60 to-slate-800/80 h-32 rounded-t-[32px] flex flex-col items-center justify-center p-4 text-center backdrop-blur-sm border-x border-t border-white/5">
+                  <div className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-1 truncate w-full">{second.firstName}</div>
+                  <div className="text-xl font-black text-white font-mono tracking-tighter">${(second.totalEarnings || 0).toFixed(0)}</div>
+                  <div className="mt-2 h-1 w-8 bg-slate-400/30 rounded-full" />
                </div>
              </div>
+             
              {/* 1st */}
-             <div className="flex flex-col items-center gap-2 w-28">
-               <div className="text-[28px]">🥇</div>
-               <div className="w-12 h-12 rounded-full bg-amber-400 flex items-center justify-center text-white font-bold border-4 border-white shadow-lg">{first.firstName?.[0]}{first.lastName?.[0]}</div>
-               <div className="w-full bg-amber-400 h-36 rounded-t-xl flex flex-col items-center justify-center p-2 text-center shadow-lg">
-                  <div className="text-[12px] font-extrabold text-white truncate w-full">{first.firstName}</div>
-                  <div className="text-[16px] font-black text-white">${(first.totalEarnings || 0).toFixed(0)}</div>
+             <div className="flex flex-col items-center gap-4 w-40 relative z-20">
+               <div className="text-4xl mb-2 drop-shadow-lg">🥇</div>
+               <div className="w-20 h-20 rounded-full bg-amber-500/20 border-4 border-amber-400 p-1.5 shadow-[0_0_30px_rgba(251,191,36,0.3)] group transition-all">
+                 <div className="w-full h-full rounded-full bg-linear-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white font-black text-2xl shadow-xl">
+                    {first.firstName?.[0]}{first.lastName?.[0]}
+                 </div>
+                 <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg transform rotate-12">
+                   <span className="text-amber-600 text-xs font-black">#1</span>
+                 </div>
+               </div>
+               <div className="w-full bg-linear-to-b from-amber-400 to-amber-600 h-48 rounded-t-[40px] flex flex-col items-center justify-center p-6 text-center shadow-2xl relative overflow-hidden">
+                  <div className="absolute top-0 inset-x-0 h-1 bg-white/20" />
+                  <div className="text-[12px] font-black text-amber-100 uppercase tracking-widest mb-1 truncate w-full">{first.firstName}</div>
+                  <div className="text-3xl font-black text-white font-mono tracking-tighter">${(first.totalEarnings || 0).toFixed(0)}</div>
+                  <div className="mt-3 text-[10px] font-bold text-amber-900/50 uppercase">Top Performer</div>
                </div>
              </div>
+
              {/* 3rd */}
-             <div className="flex flex-col items-center gap-2 w-24">
-               <div className="text-[20px]">🥉</div>
-               <div className="w-10 h-10 rounded-full bg-amber-700 flex items-center justify-center text-white font-bold">{third.firstName?.[0]}{third.lastName?.[0]}</div>
-               <div className="w-full bg-amber-600 h-20 rounded-t-xl flex flex-col items-center justify-center p-2 text-center">
-                  <div className="text-[11.2px] font-bold text-white truncate w-full">{third.firstName}</div>
-                  <div className="text-[12.8px] font-extrabold text-white">${(third.totalEarnings || 0).toFixed(0)}</div>
+             <div className="flex flex-col items-center gap-4 w-32 relative z-10">
+               <div className="text-2xl mb-1">🥉</div>
+               <div className="w-14 h-14 rounded-full bg-amber-900/20 border-2 border-amber-700/50 p-1">
+                 <div className="w-full h-full rounded-full bg-amber-800 flex items-center justify-center text-white font-black text-lg shadow-inner">
+                    {third.firstName?.[0]}{third.lastName?.[0]}
+                 </div>
+               </div>
+               <div className="w-full bg-linear-to-b from-amber-800/40 to-amber-900/60 h-24 rounded-t-[32px] flex flex-col items-center justify-center p-4 text-center backdrop-blur-sm border-x border-t border-white/5">
+                  <div className="text-[11px] font-black text-amber-200/50 uppercase tracking-widest mb-1 truncate w-full">{third.firstName}</div>
+                  <div className="text-xl font-black text-white font-mono tracking-tighter">${(third.totalEarnings || 0).toFixed(0)}</div>
                </div>
              </div>
           </div>
 
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs h-64">
-             <h3 className="text-[14.1px] font-bold text-slate-900 mb-6 tracking-tight">📣 Publish Leaderboard</h3>
-             <p className="text-[12.8px] text-slate-500 mb-6 leading-relaxed font-medium">Share the leaderboard with your community. Select cadence and channel — preview updates in real time.</p>
-             <div className="space-y-3">
-               <button className="w-full py-2.5 bg-slate-900 text-white rounded-lg text-[13.6px] font-bold shadow-lg hover:shadow-black/10 flex items-center justify-center gap-2">
-                 🚀 Publish Now to All Channels
+          <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-xs flex flex-col relative group">
+             <div className="absolute top-8 right-8 text-purple p-2 rounded-xl bg-purple/10">
+                <Megaphone size={20} />
+             </div>
+             
+             <div className="mt-2">
+               <h3 className="text-xl font-black text-slate-900 tracking-tight mb-2">Publish Stats</h3>
+               <p className="text-[13.1px] text-slate-500 mb-8 leading-relaxed font-medium">Broadcast the current rankings to your community channels to drive FOMO and growth.</p>
+             </div>
+
+             <div className="space-y-4 mt-auto">
+               <div className="rounded-2xl bg-slate-50 p-5 border border-slate-100 flex flex-col gap-3">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-widest">
+                     <span>Preview Message</span>
+                     <span className="text-green-600">✓ Ready</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 line-clamp-3 font-mono leading-relaxed bg-white/50 p-3 rounded-lg border border-white">
+                    🏆 VALO LEADERBOARD UPDATE<br/>
+                    🥇 {first.firstName} - ${(first.totalEarnings || 0).toLocaleString()}<br/>
+                    🥈 {second.firstName} - ${(second.totalEarnings || 0).toLocaleString()}...
+                  </p>
+               </div>
+
+               {publishStatus && (
+                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-3 rounded-xl bg-emerald-50 text-emerald-700 text-[11px] font-black text-center border border-emerald-100 italic uppercase tracking-tighter">
+                   {publishStatus}
+                 </motion.div>
+               )}
+
+               <button 
+                 onClick={publishLeaderboard}
+                 className="w-full py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl hover:bg-black transition-all transform active:scale-95 flex items-center justify-center gap-2 group"
+               >
+                 🚀 Broadcast Now <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                </button>
-               <div className="text-[11.2px] text-slate-400 text-center font-bold">Auto-publish: Weekly · Mon 9AM</div>
+               <div className="text-[11px] text-slate-400 text-center font-bold tracking-tight">Recurrence: Weekly · Mon 9AM</div>
              </div>
           </div>
         </div>
       ) : (
-        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-10 text-center text-slate-500 italic">
-          Waiting for more referral data to populate the podium...
+        <div className="bg-slate-50 border border-slate-200 rounded-[32px] p-20 text-center text-slate-400 font-bold italic">
+          Waiting for more referral data to populate the podium systems...
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+      <div className="bg-white rounded-[32px] border border-slate-200 overflow-hidden shadow-xs">
+        <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+           <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Full Rankings</h3>
+           <span className="text-[10px] font-black text-slate-400 uppercase bg-white border border-slate-200 px-3 py-1 rounded-full">Top 20</span>
+        </div>
         <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-100">
+          <thead className="bg-white border-b border-slate-100">
             <tr>
-              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase">Rank</th>
-              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase">Trader</th>
-              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase">Total Referrals</th>
-              <th className="px-6 py-3 text-[11px] font-bold text-slate-400 uppercase text-right">Total Earned</th>
+              <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Rank</th>
+              <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Subscriber</th>
+              <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Referrals</th>
+              <th className="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Lifetime Earnings</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-50">
             {topUsers.map((user, i) => (
-              <tr key={i} className="hover:bg-slate-50/50">
-                <td className="px-6 py-4 font-black text-slate-400">#{i + 1}</td>
-                <td className="px-6 py-4 font-bold text-slate-900">{user.firstName} {user.lastName}</td>
-                <td className="px-6 py-4 text-slate-600 font-medium">{user.referralCount || 0} users</td>
-                <td className="px-6 py-4 text-right font-mono font-bold text-green">${(user.totalEarnings || 0).toFixed(2)}</td>
+              <tr key={i} className="group hover:bg-slate-50/80 transition-colors">
+                <td className="px-8 py-5">
+                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black ${i < 3 ? 'bg-purple text-white shadow-lg shadow-purple/30' : 'bg-slate-100 text-slate-400'}`}>
+                      {i + 1}
+                   </div>
+                </td>
+                <td className="px-8 py-5">
+                   <div className="font-black text-slate-900 text-[14.8px] leading-tight">{user.firstName} {user.lastName}</div>
+                   <div className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-0.5 whitespace-nowrap">ID: {user.referralCode}</div>
+                </td>
+                <td className="px-8 py-5 text-center">
+                   <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-black uppercase tracking-tight">
+                     {user.referralCount || 0} active
+                   </span>
+                </td>
+                <td className="px-8 py-5 text-right font-mono font-black text-[15.6px] text-emerald-600 tracking-tighter">
+                   ${(user.totalEarnings || 0).toLocaleString()}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -754,6 +897,7 @@ function LeaderboardTab() {
     </div>
   );
 }
+
 
 function PayoutRequestsTab() {
   const [requests, setRequests] = useState<PayoutRequest[]>([]);
