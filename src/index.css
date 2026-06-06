@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-purple: #6c35de;
+  --color-purple-dark: #5229b5;
+  --color-purple-light: #ede9fe;
+  --color-purple-mid: #7c3aed;
+
+  --color-green: #059669;
+  --color-green-light: #ecfdf5;
+  --color-red: #dc2626;
+  --color-red-light: #fef2f2;
+  --color-amber: #d97706;
+  --color-blue-sig: #2563eb;
+  
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply font-sans text-slate-900 antialiased;
+}
+
+@layer utilities {
+  .clip-path-slant {
+    clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+  }
+}
