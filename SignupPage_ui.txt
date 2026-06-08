@@ -26,6 +26,7 @@
             <p style={{fontSize: '.8rem', color: 'rgba(255,255,255,.55)'}}><strong style={{color: 'rgba(255,255,255,.85)'}}>1,400+ traders</strong> already receiving signals</p>
           </div>
         </div>
+        
       </div>
       {/* RIGHT: 3-STEP FORM */}
       <div style={{background: '#fff', padding: '52px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', overflowY: 'auto'}}>
