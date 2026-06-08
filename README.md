@@ -13,17 +13,18 @@
 
 - **Structured Trade Signals:** Provides fully risk-managed setups including Trade Bias, Entry Zones, Stop Loss levels, Take Profit targets (TP1–TP3), and Leverage guidance.
 - **Dynamic Blog & Education:** A high-end reading experience with dynamic routing, dedicated author boxes, rich HTML content, and automatic Related Posts matching.
-- **Custom Built CMS:** A bespoke Admin Dashboard (`/admin/cms`) that allows admins to:
-  - Write and format posts using a built-in rich text editor.
-  - Upload featured images.
-  - Toggle specific article components (Table of Contents, FAQs, Author Box, Related Posts, CTA blocks).
-  - Draft or Publish directly to the live site.
-- **Premium UI/UX:** Built with a custom design system featuring glassmorphism, dynamic gradients, and smooth micro-animations using Framer Motion.
+- **User Dashboard:** Seamless and responsive user portal with dynamic subscription status mapping and WhatsApp integration tracking.
+- **Referral Dashboard:** Detailed analytics for referrers to track downlines and total commissions with integrated charts and automated link generation.
+- **Admin Dashboard & CMS (`/admin` and `/admin/cms`):** A bespoke admin portal allowing you to:
+  - Oversee global operations, signal broadcasts, subscriber metrics, and real-time payout requests.
+  - Generate, edit, and format rich-text HTML blog posts with specific component toggling.
+  - Approve payouts directly impacting user account balances via Firebase integration.
+- **Premium UI/UX:** Meticulously mapped from original HTML mockups using a robust Custom Vanilla CSS design system tailored for elite aesthetics. 
 
 ## 🛠️ Tech Stack
 
-- **Frontend:** React + Vite
-- **Styling:** Custom Vanilla CSS (Tailwind-inspired structure) + Framer Motion
+- **Frontend:** React + Vite + React Router DOM
+- **Styling:** Custom Vanilla CSS Design System + Framer Motion
 - **Database:** Firebase Firestore (Real-time NoSQL)
 - **Authentication:** Firebase Auth
 - **Icons:** Lucide React
@@ -48,34 +49,30 @@
    \`\`\`
 
 3. **Firebase Configuration**
-   In the root of the project, replace the keys in \`firebase-applet-config.json\` with your own Firebase project credentials:
-   \`\`\`json
-   {
-     "apiKey": "YOUR_API_KEY",
-     "authDomain": "your-app.firebaseapp.com",
-     "projectId": "your-project-id",
-     "storageBucket": "your-app.firebasestorage.app",
-     "messagingSenderId": "YOUR_SENDER_ID",
-     "appId": "YOUR_APP_ID"
-   }
-   \`\`\`
-   
+   In \`src/lib/firebase.ts\`, replace the keys in \`firebaseConfig\` with your own Firebase project credentials.
    *(Ensure your Firestore Database is initialized and Rules are set to allow reads for the blog, and authenticated writes for the CMS).*
 
 4. **Start the Development Server**
    \`\`\`bash
    npm run dev
    \`\`\`
-   The app will run at `http://localhost:3000`.
+   The app will run at \`http://localhost:5173\`.
 
 ## 🌐 Deploying to Production
 
-This project is optimized to be deployed seamlessly to platforms like **Netlify** or **Vercel**. 
+This project is optimized to be deployed seamlessly to **Netlify** or **Vercel**. 
 Simply connect your GitHub repository to your hosting provider, and set the build command to:
 \`\`\`bash
 npm run build
 \`\`\`
-The output directory will be `dist`.
+The output directory will be \`dist\`.
+
+> **Note on Admin Access for Production:**  
+> The \`/admin\` and \`/admin/cms\` pages are protected by Firebase Auth and firestore document rules. To view these pages on your production server:
+> 1. Sign up/Log in using your account on the deployed site.
+> 2. Go to your Firebase Console -> Firestore Database -> \`users\` collection.
+> 3. Find your user document and set the \`isAdmin\` boolean field to \`true\`.
+> 4. Refresh your browser; you will now have full access to \`/admin\` and \`/admin/cms\`.
 
 ---
 *Created with focus on trading discipline, risk management, and beautiful design.*

@@ -1,0 +1,111 @@
+<div id="page-referral" className="page">
+  <div className="ref-dash-wrap">
+    
+    <div className="dash-sidebar" style={{"background":"#fff","borderRight":"1px solid var(--gray-200)","padding":"20px 0","display":"flex","flexDirection":"column"}}>
+      <div style={{"padding":"0 16px 16px","fontSize":".65rem","fontWeight":"700","letterSpacing":".12em","textTransform":"uppercase","color":"var(--gray-300)"}}>Main</div>
+      <div className="dash-nav-item" onclick="showPage('dashboard')"><span>📊</span>Overview</div>
+      <div className="dash-nav-item"><span>📡</span>Signal Feed</div>
+      <div className="dash-nav-item"><span>📜</span>History</div>
+      <div style={{"padding":"12px 16px 4px","fontSize":".65rem","fontWeight":"700","letterSpacing":".12em","textTransform":"uppercase","color":"var(--gray-300)"}}>Account</div>
+      <div className="dash-nav-item active"><span>🎁</span>Referrals <span style={{"background":"var(--green)","color":"#fff","fontSize":".6rem","fontWeight":"700","padding":"1px 7px","borderRadius":"9999px","marginLeft":"auto"}}>$29</span></div>
+      <div className="dash-nav-item" onclick="showPage('pricing')"><span>💳</span>Subscription</div>
+      <div className="dash-nav-item"><span>👤</span>Profile</div>
+      <div style={{"flex":"1"}} />
+      <div style={{"margin":"12px","background":"linear-gradient(135deg,var(--purple),#5b21b6)","borderRadius":"14px","padding":"14px","color":"#fff"}}>
+        <div style={{"fontSize":"1.4rem","fontWeight":"800","letterSpacing":"-.04em","lineHeight":"1"}}>5</div>
+        <div style={{"fontSize":".68rem","opacity":".6","marginBottom":"8px"}}>trial days left</div>
+        <div style={{"background":"rgba(255,255,255,.2)","borderRadius":"9999px","height":"4px","marginBottom":"10px"}}><div style={{"width":"71%","height":"100%","background":"#fff","borderRadius":"9999px"}} /></div>
+        <p style={{"fontSize":".72rem","opacity":".75","marginBottom":"8px"}}>Upgrade to earn referral commissions on paid plan.</p>
+        <button onclick="showPage('pricing')" style={{"width":"100%","padding":"8px","background":"#fff","color":"var(--purple)","border":"none","borderRadius":"8px","fontFamily":"var(--f-body)","fontSize":".78rem","fontWeight":"700","cursor":"pointer"}}>Upgrade now →</button>
+      </div>
+    </div>
+
+    
+    <div className="admin-main-area">
+      
+      <div style={{"background":"linear-gradient(135deg,var(--purple) 0%,#4a1d9e 100%)","borderRadius":"18px","padding":"28px 32px","marginBottom":"20px","position":"relative","overflow":"hidden"}}>
+        <div style={{"position":"absolute","top":"-50px","right":"-50px","width":"240px","height":"240px","borderRadius":"50%","background":"rgba(255,255,255,.05)"}} />
+        <div style={{"position":"relative","zIndex":"1","display":"grid","gridTemplateColumns":"1fr auto","gap":"2rem","alignItems":"center"}}>
+          <div>
+            <div style={{"display":"inline-flex","alignItems":"center","gap":"6px","background":"rgba(255,255,255,.15)","color":"#fff","fontSize":".7rem","fontWeight":"700","padding":"3px 12px","borderRadius":"9999px","textTransform":"uppercase","letterSpacing":".08em","marginBottom":"12px"}}>🎁 Referral Program</div>
+            <h2 style={{"fontSize":"1.5rem","fontWeight":"800","color":"#fff","letterSpacing":"-.04em","lineHeight":"1.15","marginBottom":"8px"}}>Earn <span style={{"color":"#fbbf24"}}>30% cash</span> for every trader you refer.</h2>
+            <p style={{"fontSize":".875rem","color":"rgba(255,255,255,.72)","lineHeight":"1.75","maxWidth":"480px","marginBottom":"18px"}}>Share your link. When someone subscribes to any paid plan, you earn 30% of every payment — recurring forever. No cap.</p>
+            <div style={{"display":"flex","gap":"8px","flexWrap":"wrap","marginBottom":"18px"}}>
+              <div style={{"background":"rgba(255,255,255,.12)","border":"1px solid rgba(255,255,255,.2)","color":"#fff","fontSize":".76rem","fontWeight":"600","padding":"5px 12px","borderRadius":"9999px"}}>$12/mo · Monthly</div>
+              <div style={{"background":"rgba(255,255,255,.12)","border":"1px solid rgba(255,255,255,.2)","color":"#fff","fontSize":".76rem","fontWeight":"600","padding":"5px 12px","borderRadius":"9999px"}}>$30/qtr · Quarterly</div>
+              <div style={{"background":"rgba(255,255,255,.12)","border":"1px solid rgba(255,255,255,.2)","color":"#fff","fontSize":".76rem","fontWeight":"600","padding":"5px 12px","borderRadius":"9999px"}}>$54 · 6 Months</div>
+              <div style={{"background":"rgba(255,255,255,.12)","border":"1px solid rgba(255,255,255,.2)","color":"#fff","fontSize":".76rem","fontWeight":"600","padding":"5px 12px","borderRadius":"9999px"}}>$105/yr · Yearly</div>
+            </div>
+            <div style={{"background":"rgba(255,255,255,.1)","border":"1px solid rgba(255,255,255,.2)","borderRadius":"12px","padding":"14px"}}>
+              <div style={{"fontSize":".7rem","fontWeight":"600","color":"rgba(255,255,255,.55)","textTransform":"uppercase","letterSpacing":".06em","marginBottom":"7px"}}>Your referral link</div>
+              <div style={{"display":"flex","gap":"7px","marginBottom":"7px"}}>
+                <input id="ref-link-val" value="valoai.app/signup?ref=ALEX123" readonly="" onclick="this.select()" style={{"flex":"1","background":"rgba(255,255,255,.15)","border":"1px solid rgba(255,255,255,.25)","borderRadius":"8px","padding":"9px 12px","color":"#fff","fontFamily":"var(--f-mono)","fontSize":".8rem","outline":"none","minWidth":"0"}} />
+                <button onclick="copyRefLink()" id="ref-copy-btn" style={{"background":"#fff","color":"var(--purple)","border":"none","borderRadius":"8px","padding":"9px 16px","fontFamily":"var(--f-body)","fontSize":".8rem","fontWeight":"700","cursor":"pointer","whiteSpace":"nowrap"}}>Copy link</button>
+              </div>
+              <div style={{"display":"flex","gap":"6px"}}>
+                <button onclick="shareRef('whatsapp')" style={{"flex":"1","padding":"7px","background":"rgba(255,255,255,.1)","border":"1px solid rgba(255,255,255,.2)","borderRadius":"7px","color":"#fff","fontFamily":"var(--f-body)","fontSize":".74rem","fontWeight":"600","cursor":"pointer"}}>💬 WhatsApp</button>
+                <button onclick="shareRef('telegram')" style={{"flex":"1","padding":"7px","background":"rgba(255,255,255,.1)","border":"1px solid rgba(255,255,255,.2)","borderRadius":"7px","color":"#fff","fontFamily":"var(--f-body)","fontSize":".74rem","fontWeight":"600","cursor":"pointer"}}>✈️ Telegram</button>
+                <button onclick="shareRef('twitter')" style={{"flex":"1","padding":"7px","background":"rgba(255,255,255,.1)","border":"1px solid rgba(255,255,255,.2)","borderRadius":"7px","color":"#fff","fontFamily":"var(--f-body)","fontSize":".74rem","fontWeight":"600","cursor":"pointer"}}>𝕏 Twitter</button>
+              </div>
+            </div>
+          </div>
+          <div style={{"textAlign":"center","flexShrink":"0"}}>
+            <div style={{"fontSize":"3.8rem","fontWeight":"800","color":"#fbbf24","letterSpacing":"-.06em","lineHeight":"1"}}>30%</div>
+            <div style={{"fontSize":".76rem","color":"rgba(255,255,255,.5)","marginTop":"4px"}}>recurring commission<br />no cap · no expiry</div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div style={{"background":"#f0fdf4","border":"1.5px solid #bbf7d0","borderRadius":"16px","padding":"16px 20px","marginBottom":"18px","display":"flex","alignItems":"center","justifyContent":"space-between","gap":"16px"}}>
+        <div style={{"display":"flex","alignItems":"center","gap":"12px"}}>
+          <span style={{"fontSize":"1.8rem"}}>💸</span>
+          <div><div style={{"fontSize":".9rem","fontWeight":"700","color":"#15803d"}}>$29.40 available to withdraw</div><div style={{"fontSize":".8rem","color":"var(--green)","marginTop":"2px"}}>Your balance has passed the $20 minimum. Withdraw via PayPal, bank transfer, or USDT.</div></div>
+        </div>
+        <button onclick="showToast('✓ Payout request submitted! Processing in 3–5 business days.','success')" style={{"background":"var(--green)","color":"#fff","border":"none","borderRadius":"9999px","padding":"10px 20px","fontFamily":"var(--f-body)","fontSize":".875rem","fontWeight":"700","cursor":"pointer","whiteSpace":"nowrap","flexShrink":"0"}}>Request payout →</button>
+      </div>
+
+      
+      <div className="kpi-grid" style={{"marginBottom":"20px"}}>
+        <div className="kpi-card" style={{"borderTop":"3px solid var(--purple)"}}><div className="kpi-label">Total Earned</div><div className="kpi-val purple">$73.50</div><div className="kpi-change up">+$14.70 this month</div></div>
+        <div className="kpi-card" style={{"borderTop":"3px solid #d97706"}}><div className="kpi-label">Pending</div><div className="kpi-val" style={{"color":"#d97706"}}>$29.40</div><div className="kpi-change">Clears April 1</div></div>
+        <div className="kpi-card" style={{"borderTop":"3px solid var(--green)"}}><div className="kpi-label">Total Paid Out</div><div className="kpi-val green">$44.10</div><div className="kpi-change up">Last: Feb 28</div></div>
+        <div className="kpi-card" style={{"borderTop":"3px solid #2563eb"}}><div className="kpi-label">Active Referrals</div><div className="kpi-val" style={{"color":"#2563eb"}}>3</div><div className="kpi-change up">+1 this month</div></div>
+      </div>
+
+      
+      <div className="a-card" style={{"marginBottom":"20px"}}>
+        <div className="a-card-head">
+          <h3>Your Referrals</h3>
+          <div style={{"display":"flex","gap":"6px"}}>
+            <button className="btn btn-outline btn-sm" id="rf-all" onclick="filterRefs('all',this)" style={{"background":"var(--purple-light)","color":"var(--purple)","borderColor":"var(--purple-border)"}}>All (6)</button>
+            <button className="btn btn-outline btn-sm" id="rf-active" onclick="filterRefs('active',this)">Active (3)</button>
+            <button className="btn btn-outline btn-sm" id="rf-trial" onclick="filterRefs('trial',this)">Trial (2)</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Subscriber</th><th>Plan</th><th>Status</th><th>Joined</th><th style={{"textAlign":"right"}}>You Earn</th><th style={{"textAlign":"right"}}>Next Payment</th></tr></thead>
+          <tbody id="ref-table-body" />
+        </table>
+      </div>
+
+      
+      <div style={{"display":"grid","gridTemplateColumns":"1fr 1fr","gap":"18px"}}>
+        <div className="a-card">
+          <div className="a-card-head"><h3>Payout History</h3></div>
+          <div style={{"padding":"12px 18px","display":"flex","alignItems":"center","gap":"10px","borderBottom":"1px solid var(--gray-100)"}}><div style={{"width":"32px","height":"32px","borderRadius":"50%","background":"#f0fdf4","display":"flex","alignItems":"center","justifyContent":"center","fontSize":".85rem","flexShrink":"0"}}>💸</div><div style={{"flex":"1"}}><div style={{"fontSize":".84rem","fontWeight":"600","color":"var(--gray-900)"}}>Payout — PayPal</div><div style={{"fontSize":".73rem","color":"var(--gray-400)"}}>Feb 28, 2026 · 3 referrals</div></div><span style={{"fontFamily":"var(--f-mono)","fontWeight":"700","color":"var(--green)"}}>+$44.10</span><span style={{"fontSize":".68rem","fontWeight":"700","background":"#f0fdf4","color":"var(--green)","padding":"2px 8px","borderRadius":"9999px","marginLeft":"8px"}}>Paid</span></div>
+          <div style={{"padding":"12px 18px","display":"flex","alignItems":"center","gap":"10px"}}><div style={{"width":"32px","height":"32px","borderRadius":"50%","background":"#fffbeb","display":"flex","alignItems":"center","justifyContent":"center","fontSize":".85rem","flexShrink":"0"}}>⏳</div><div style={{"flex":"1"}}><div style={{"fontSize":".84rem","fontWeight":"600","color":"var(--gray-900)"}}>Pending — PayPal</div><div style={{"fontSize":".73rem","color":"var(--gray-400)"}}>Requested Mar 21, 2026</div></div><span style={{"fontFamily":"var(--f-mono)","fontWeight":"700","color":"#d97706"}}>$29.40</span><span style={{"fontSize":".68rem","fontWeight":"700","background":"#fffbeb","color":"#d97706","padding":"2px 8px","borderRadius":"9999px","marginLeft":"8px"}}>Processing</span></div>
+        </div>
+        <div className="a-card" style={{"padding":"18px"}}>
+          <div style={{"fontSize":".88rem","fontWeight":"700","color":"var(--gray-900)","marginBottom":"14px"}}>💡 How it works</div>
+          <div style={{"display":"flex","flexDirection":"column","gap":"12px"}}>
+            <div style={{"display":"flex","gap":"10px"}}><div style={{"width":"26px","height":"26px","borderRadius":"50%","background":"var(--purple-light)","color":"var(--purple)","fontSize":".7rem","fontWeight":"800","display":"flex","alignItems":"center","justifyContent":"center","flexShrink":"0"}}>1</div><div style={{"fontSize":".82rem","color":"var(--gray-600)","lineHeight":"1.6"}}><strong style={{"color":"var(--gray-900)","display":"block"}}>Share your referral link</strong>Post on social media, WhatsApp groups, or send to friends.</div></div>
+            <div style={{"display":"flex","gap":"10px"}}><div style={{"width":"26px","height":"26px","borderRadius":"50%","background":"var(--purple-light)","color":"var(--purple)","fontSize":".7rem","fontWeight":"800","display":"flex","alignItems":"center","justifyContent":"center","flexShrink":"0"}}>2</div><div style={{"fontSize":".82rem","color":"var(--gray-600)","lineHeight":"1.6"}}><strong style={{"color":"var(--gray-900)","display":"block"}}>They subscribe to any paid plan</strong>You get credited 30% of their payment automatically.</div></div>
+            <div style={{"display":"flex","gap":"10px"}}><div style={{"width":"26px","height":"26px","borderRadius":"50%","background":"var(--purple-light)","color":"var(--purple)","fontSize":".7rem","fontWeight":"800","display":"flex","alignItems":"center","justifyContent":"center","flexShrink":"0"}}>3</div><div style={{"fontSize":".82rem","color":"var(--gray-600)","lineHeight":"1.6"}}><strong style={{"color":"var(--gray-900)","display":"block"}}>Earn 30% every renewal</strong>Recurring for as long as they stay subscribed. No cap.</div></div>
+            <div style={{"display":"flex","gap":"10px"}}><div style={{"width":"26px","height":"26px","borderRadius":"50%","background":"var(--purple-light)","color":"var(--purple)","fontSize":".7rem","fontWeight":"800","display":"flex","alignItems":"center","justifyContent":"center","flexShrink":"0"}}>4</div><div style={{"fontSize":".82rem","color":"var(--gray-600)","lineHeight":"1.6"}}><strong style={{"color":"var(--gray-900)","display":"block"}}>Withdraw at $20 minimum</strong>PayPal, bank transfer, or USDT (TRC-20). Paid in 3–5 days.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
