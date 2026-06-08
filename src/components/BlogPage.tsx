@@ -43,44 +43,13 @@ const FALLBACK_POSTS = [
   },
 ];
 
-import { collection, query, where, orderBy, getDocs } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 
 export default function BlogPage() {
   const navigate = useNavigate();
   const [posts, setPosts] = React.useState<any[]>(FALLBACK_POSTS);
 
   React.useEffect(() => {
-    async function fetchPosts() {
-      try {
-        // Fetch all Published posts without orderBy to prevent requiring a composite index
-        const q = query(collection(db, 'posts'), where('status', '==', 'Published'));
-        const snapshot = await getDocs(q);
-        if (!snapshot.empty) {
-          const fetchedPosts = snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: data.slug ? data.slug.replace('/blog/', '') : doc.id,
-              title: data.title,
-              excerpt: data.excerpt,
-              category: data.category,
-              readTime: data.readTime,
-              image: data.image,
-              date: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }) : 'Recent',
-              _timestamp: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now()
-            };
-          });
-          
-          // Sort in memory to avoid Firestore index requirement
-          fetchedPosts.sort((a, b) => b._timestamp - a._timestamp);
-          
-          setPosts(fetchedPosts);
-        }
-      } catch (e) {
-        console.error('Error fetching posts:', e);
-      }
-    }
-    fetchPosts();
+    // Firebase removed, fallback posts will be shown
   }, []);
 
   return (

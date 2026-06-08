@@ -4,9 +4,9 @@ import { Link, Routes, Route } from 'react-router-dom';
 import DashboardLayout from './DashboardLayout';
 
 import { useAuth } from '../context/AuthContext';
-import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType, auth } from '../lib/firebase';
-import { Signal, SubscriptionStatus } from '../types';
+import { Signal } from '../types';
+
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000';
 
 function Overview() {
   const { userData } = useAuth();
@@ -14,18 +14,27 @@ function Overview() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const q = query(collection(db, 'signals'), orderBy('createdAt', 'desc'), limit(10));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedSignals = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as Signal[];
-      setSignals(fetchedSignals);
-      setLoading(false);
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, 'signals');
-    });
-    return () => unsubscribe();
+    const fetchSignals = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        const res = await fetch(`${API_URL}/api/web/user/signals`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setSignals(data.signals || []);
+        }
+      } catch (err) {
+        console.error("Error fetching signals:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSignals();
   }, []);
 
   const latestSignal = signals[0];
@@ -70,7 +79,7 @@ function Overview() {
            { label: 'Signals Received', val: signals.length, change: 'Lifetime', color: 'text-purple' },
            { label: 'Trial Status', val: userData?.status === 'trial' ? 'Active' : userData?.plan || 'Free', change: userData?.trialExpiresAt ? 'Limited trial' : 'Unlimited', color: 'text-green' },
            { label: 'WhatsApp', val: userData?.whatsapp ? 'Connected' : 'Offline', change: userData?.whatsapp ? 'Live' : 'Action req.', color: userData?.whatsapp ? 'text-green' : 'text-amber' },
-           { label: 'Latest Signal', val: latestSignal ? `${latestSignal.pair} ${latestSignal.bias}` : 'No signals', change: latestSignal ? 'Delivered' : 'Waiting...' },
+           { label: 'Latest Signal', val: latestSignal ? `${latestSignal.tradePair} ${latestSignal.bias || 'Trade'}` : 'No signals', change: latestSignal ? 'Delivered' : 'Waiting...' },
          ].map((kpi, i) => (
            <div key={i} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
              <div className="text-[12px] font-semibold tracking-wider text-slate-400 uppercase mb-3">{kpi.label}</div>
@@ -92,21 +101,19 @@ function Overview() {
                 {latestSignal ? (
                   <div className="bg-slate-50 border border-slate-200 rounded-xl p-5">
                     <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
-                      <span className="text-[17.6px] font-extrabold text-slate-900">{latestSignal.pair}</span>
+                      <span className="text-[17.6px] font-extrabold text-slate-900">{latestSignal.tradePair || (latestSignal as any).pair}</span>
                       <span className={`px-3 py-1 text-[11.5px] font-bold rounded-full uppercase tracking-wider border ${
                         latestSignal.bias === 'Long' ? 'bg-green-light text-green border-green/20' : 'bg-red-light text-red border-red/20'
-                      }`}>{latestSignal.bias}</span>
+                      }`}>{latestSignal.bias || 'Trade'}</span>
                     </div>
                     
                     <div className="space-y-2">
                        {[
-                         { k: 'Entry Zone', v: latestSignal.entryZone },
+                         { k: 'Entry Price', v: latestSignal.entryPrice },
                          { k: 'Stop Loss', v: latestSignal.stopLoss, c: 'text-red' },
-                         ...latestSignal.takeProfits.map((tp, idx) => ({ k: `Take Profit ${idx + 1}`, v: tp, c: 'text-blue-sig' })),
+                         ...(latestSignal.takeProfit || []).map((tp: string, idx: number) => ({ k: `Take Profit ${idx + 1}`, v: tp, c: 'text-blue-sig' })),
                          { k: 'Leverage', v: latestSignal.leverage },
-                         { k: 'Duration', v: latestSignal.duration },
-                         { k: 'Risk Rule', v: latestSignal.riskRule || 'Standard', c: 'text-amber' },
-                         { k: 'Price at Signal', v: latestSignal.priceAtSignal || 'N/A' },
+                         { k: 'Position Size', v: latestSignal.positionSize },
                        ].map((row, i) => (
                          <div key={i} className="flex justify-between border-b border-slate-100 last:border-0 py-1.5 flex-wrap gap-2">
                            <span className="text-[13.6px] font-medium text-slate-500">{row.k}</span>
@@ -128,15 +135,15 @@ function Overview() {
                 <h3 className="text-[15.2px] font-bold text-slate-900">Signal History</h3>
              </div>
              <div className="px-5 pb-5 space-y-2">
-                {signals.slice(1).map((h, i) => (
+                {signals.slice(1).map((h: any, i) => (
                   <div key={i} className="flex items-center gap-3 p-3.5 border border-slate-200 rounded-xl bg-slate-50 hover:border-purple/30 transition-all flex-wrap sm:flex-nowrap">
-                     <span className="text-[14px] font-bold w-24 text-slate-900 shrink-0">{h.pair}</span>
+                     <span className="text-[14px] font-bold w-24 text-slate-900 shrink-0">{h.tradePair || h.pair}</span>
                      <span className={`px-2 py-0.5 text-[11px] font-bold rounded-full uppercase tracking-tighter shrink-0 border ${
                        h.bias === 'Long' ? 'bg-green-light text-green border-green/20' : 'bg-red-light text-red border-red/20'
-                     }`}>{h.bias}</span>
-                     <span className="flex-1 text-[12.5px] font-medium text-slate-500 truncate">{h.entryZone} · {h.leverage}</span>
+                     }`}>{h.bias || 'TRADE'}</span>
+                     <span className="flex-1 text-[12.5px] font-medium text-slate-500 truncate">{h.entryPrice || h.entryZone} · {h.leverage}</span>
                      <span className="text-[11.5px] font-bold text-slate-400 whitespace-nowrap">
-                        {h.createdAt?.toDate ? h.createdAt.toDate().toLocaleDateString() : 'Recent'}
+                        {h.createdAt ? new Date(h.createdAt).toLocaleDateString() : 'Recent'}
                      </span>
                   </div>
                 ))}
@@ -154,7 +161,7 @@ function Overview() {
                 {userData?.plan === 'free' ? 'Trial Plan' : `${userData?.plan} Plan`}
               </span>
               <h3 className="text-[17.6px] font-extrabold mb-1">
-                {userData?.plan === 'free' ? 'Valo Pro Trial' : `Subscription: ${userData?.plan.charAt(0).toUpperCase()}${userData?.plan.slice(1)}`}
+                {userData?.plan === 'free' ? 'Valo Pro Trial' : `Subscription: ${userData?.plan?.charAt(0).toUpperCase()}${userData?.plan?.slice(1)}`}
               </h3>
               <p className="text-[12.5px] opacity-75 mb-6">
                 Status: <span className="capitalize">{userData?.status || 'Active'}</span>
@@ -175,7 +182,7 @@ function Overview() {
               <div className="text-[14px] font-bold text-green flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-green animate-pulse" /> WhatsApp Delivery Active
               </div>
-              <div className="text-[13.1px] font-mono text-green bg-green/10 px-2.5 py-1 rounded inline-block mb-3">+1 (234) *** **00</div>
+              <div className="text-[13.1px] font-mono text-green bg-green/10 px-2.5 py-1 rounded inline-block mb-3">{userData?.whatsapp || '+1 (234) *** **00'}</div>
               <p className="text-[12.8px] text-green opacity-80 leading-relaxed mb-4">Your number is connected and receiving signals automatically. No action needed — signals are pushed the moment they are identified.</p>
               <button className="w-full py-2.5 bg-[#25d366] text-white rounded-lg text-[13.6px] font-bold hover:bg-[#22c55e] transition-colors">Open WhatsApp ↗</button>
            </div>
@@ -241,17 +248,15 @@ function WhatsAppSetup() {
   const [status, setStatus] = React.useState<string | null>(null);
 
   const handleUpdate = async () => {
-    if (!auth.currentUser) return;
     setLoading(true);
     try {
-      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-        whatsapp,
-        country
-      });
-      setStatus('WhatsApp connection updated successfully!');
+      // Mocking update for now
+      setTimeout(() => {
+        setStatus('WhatsApp connection updated successfully!');
+        setLoading(false);
+      }, 1000);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
-    } finally {
+      console.error(error);
       setLoading(false);
     }
   };
@@ -320,17 +325,15 @@ function ProfilePanel() {
   const [status, setStatus] = React.useState<string | null>(null);
 
   const handleUpdate = async () => {
-    if (!auth.currentUser) return;
     setLoading(true);
     try {
-      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
-        firstName,
-        lastName
-      });
-      setStatus('Profile updated successfully!');
+      // Mocking update for now
+      setTimeout(() => {
+        setStatus('Profile updated successfully!');
+        setLoading(false);
+      }, 1000);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
-    } finally {
+      console.error(error);
       setLoading(false);
     }
   };
@@ -409,4 +412,3 @@ export default function UserDashboard() {
     </DashboardLayout>
   );
 }
-

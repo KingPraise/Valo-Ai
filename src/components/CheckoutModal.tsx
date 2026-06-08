@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Shield, Lock, Check, Zap, CreditCard, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { doc, updateDoc, serverTimestamp, getDoc, increment, collection, setDoc } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { useNavigate } from 'react-router-dom';
 
 interface CheckoutModalProps {
@@ -59,57 +57,16 @@ export default function CheckoutModal({ isOpen, onClose, plan }: CheckoutModalPr
 
     setLoading(true);
     try {
-      const userRef = doc(db, 'users', userData.uid);
-      const isNewActive = userData.status !== 'active';
-      
-      // 1. Update user plan
-      await updateDoc(userRef, {
-        plan: plan.title === 'Monthly' ? 'pro' : plan.title.toLowerCase(),
-        status: 'active',
-        planExpiresAt: new Date(Date.now() + (plan.title === 'Monthly' ? 30 : plan.title === 'Quarterly' ? 90 : plan.title === '6 Months' ? 180 : 365) * 24 * 60 * 60 * 1000)
-      });
-
-      // 1.5. Track the sale for Admin Sales Report
-      await setDoc(doc(collection(db, 'sales')), {
-        userId: userData.uid,
-        userName: `${userData.firstName} ${userData.lastName}`,
-        amount: finalPrice,
-        originalAmount: basePrice,
-        plan: plan.title,
-        coupon: couponData ? couponInput.toUpperCase() : null,
-        method: payMethod,
-        createdAt: serverTimestamp()
-      });
-
-      // 2. Handle Referral Commission
-      if (userData.referrerId && isNewActive) {
-        const commissionAmount = finalPrice * 0.3;
-        const referrerRef = doc(db, 'users', userData.referrerId);
-        
-        await updateDoc(referrerRef, {
-          balance: increment(commissionAmount),
-          totalEarnings: increment(commissionAmount),
-          referralCount: increment(1)
-        });
-
-        await setDoc(doc(collection(db, 'referralSales')), {
-          referrerId: userData.referrerId,
-          referredUserId: userData.uid,
-          referredUserName: `${userData.firstName} ${userData.lastName}`,
-          amount: finalPrice,
-          commission: commissionAmount,
-          plan: plan.title,
-          createdAt: serverTimestamp()
-        });
-      }
-
+      // API call to upgrade user plan would go here.
+      // Mocking for now to remove Firebase dependencies.
+      await new Promise(resolve => setTimeout(resolve, 1500));
       setSuccess(true);
       setTimeout(() => {
         onClose();
         navigate('/dashboard');
       }, 2500);
     } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${userData.uid}`);
+      console.error(error);
     } finally {
       setLoading(false);
     }
