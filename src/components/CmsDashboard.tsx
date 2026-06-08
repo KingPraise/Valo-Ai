@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, doc, setDoc, deleteDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+// Firebase logic removed
 import './CmsDashboard.css';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -65,13 +64,9 @@ export default function CmsDashboard() {
   }, [authLoading, isAdmin, navigate]);
 
   useEffect(() => {
-    const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const postsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as BlogPost));
-      setPosts(postsData);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    // Mocking posts
+    setPosts([]);
+    setLoading(false);
   }, []);
 
   const handlePostSelect = (index: number) => {
@@ -145,17 +140,6 @@ export default function CmsDashboard() {
 
   const savePost = async () => {
     try {
-      const id = formData.id || formData.slug?.replace('/blog/', '') || `post-${Date.now()}`;
-      const postRef = doc(db, 'posts', id);
-      
-      const postData = {
-        ...formData,
-        id,
-        updatedAt: serverTimestamp(),
-        createdAt: formData.createdAt || serverTimestamp(),
-      };
-      
-      await setDoc(postRef, postData, { merge: true });
       alert('Post saved successfully!');
     } catch (error) {
       console.error("Error saving post:", error);

@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Check } from 'lucide-react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
 import BlogLayout from './BlogLayout';
 
 // common data
@@ -435,35 +433,8 @@ export default function BlogPostPage() {
       if (!id) return;
       setLoading(true);
       try {
-        const docRef = doc(db, 'posts', id);
-        // Timeout after 3 seconds to avoid infinite loading if Firebase is disconnected/deleted
-        const docSnap = await Promise.race([
-          getDoc(docRef),
-          new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
-        ]);
-        
-        if (docSnap.exists() && docSnap.data().status === 'Published') {
-          const data = docSnap.data();
-          setPostData({
-            ...data,
-            heroImage: data.image || '/images/ai_trading.png',
-            date: data.createdAt?.toDate ? data.createdAt.toDate().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }) : 'Recent',
-            updatedDate: data.updatedAt?.toDate ? data.updatedAt.toDate().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '',
-            author: { name: data.author, role: '', image: '/images/chris_ani.jpeg' },
-            tableOfContents: [],
-            faqs: [],
-            takeaways: null,
-            content: <div dangerouslySetInnerHTML={{ __html: data.content }} />,
-            relatedPosts: allPosts.filter(p => p.id !== id),
-            showToc: data.showToc !== false,
-            showFaq: data.showFaq !== false,
-            showAuthor: data.showAuthor !== false,
-            showRelated: data.showRelated !== false,
-            showCta: data.showCta !== false,
-          });
-        } else {
-          setPostData(getPostData(id));
-        }
+        // Fallback to hardcoded data
+        setPostData(getPostData(id));
       } catch (e) {
         console.error("Error fetching post, falling back to hardcoded data:", e);
         setPostData(getPostData(id));

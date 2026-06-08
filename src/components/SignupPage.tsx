@@ -2,16 +2,15 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Check, ArrowRight, Smartphone, MessageSquare, ShieldCheck, Zap } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { SubscriptionStatus } from '../types';
+const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:4000';
 
 export default function SignupPage() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { login } = useAuth();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -28,48 +27,21 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-      const user = userCredential.user;
-      
-      // Get referral code from URL if exists
       const urlParams = new URLSearchParams(window.location.search);
-      const referrerCodeInput = urlParams.get('ref');
-      let referrerId = null;
+      const referrerCodeInput = urlParams.get('ref') || undefined;
 
-      if (referrerCodeInput) {
-        const usersRef = collection(db, 'users');
-        const q = query(usersRef, where('referralCode', '==', referrerCodeInput), limit(1));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          referrerId = querySnapshot.docs[0].id;
-        }
-      }
-
-      const referralCode = user.uid.substring(0, 5).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
-      
-      const userData = {
-        uid: user.uid,
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        whatsapp: '',
-        country: '',
-        plan: 'free',
-        status: SubscriptionStatus.TRIAL,
-        trialExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        planExpiresAt: null,
-        referrerId: referrerId,
-        referralCode,
-        isAdmin: false,
-        createdAt: serverTimestamp(),
-        // Initialize balance and earnings
-        balance: 0,
-        totalEarnings: 0,
-        totalPaidOut: 0,
-        referralCount: 0
-      };
-
-      await setDoc(doc(db, 'users', user.uid), userData);
+      const res = await fetch(`${API_URL}/api/web/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+          password: formData.password,
+          phone: formData.whatsapp, // The user will enter this in step 2, wait! In this flow, they enter whatsapp in step 2.
+          // For now, let's just proceed to step 2 locally before submitting to backend
+        })
+      });
+      // We will actually move the backend call to after step 2 is filled.
       setStep(2);
     } catch (err: any) {
       setError(err.message);
@@ -79,18 +51,34 @@ export default function SignupPage() {
   };
 
   const handleConnectWhatsApp = async () => {
-    if (!auth.currentUser) return;
     setLoading(true);
     setError(null);
     try {
-      const userDocRef = doc(db, 'users', auth.currentUser.uid);
-      await setDoc(userDocRef, {
-        whatsapp: formData.whatsapp,
-        country: formData.country,
-      }, { merge: true });
+      const urlParams = new URLSearchParams(window.location.search);
+      const referrerCodeInput = urlParams.get('ref') || undefined;
+
+      // Submit everything here
+      const res = await fetch(`${API_URL}/api/web/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`.trim(),
+          email: formData.email,
+          password: formData.password,
+          phone: formData.whatsapp,
+          referredBy: referrerCodeInput
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to register');
+      }
+
+      login(data.token, data.user);
       setStep(3);
     } catch (err: any) {
-      handleFirestoreError(err, OperationType.UPDATE, `users/${auth.currentUser.uid}`);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -98,9 +86,9 @@ export default function SignupPage() {
 
   const handleNext = () => {
     if (step === 1) {
-      handleSignup();
+      setStep(2); // move to whatsapp step locally
     } else if (step === 2) {
-      handleConnectWhatsApp();
+      handleConnectWhatsApp(); // submit to backend
     } else {
       navigate('/dashboard');
     }
@@ -138,14 +126,6 @@ export default function SignupPage() {
                 </div>
               </div>
             ))}
-          </div>
-
-          <div className="mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 font-mono text-xs leading-relaxed text-white/50 shadow-2xl">
-             <div className="mb-2 text-white">Trade Bias: <span className="text-purple-light">Long</span></div>
-             <div>Entry Zone: <span className="text-purple-light">$93,200 – $95,400</span></div>
-             <div>Stop Loss: <span className="text-rose-400">$88,900</span></div>
-             <div>Take Profit: <span className="text-blue-400">$98.4K / $103K / $109K</span></div>
-             <div className="mt-3 text-right text-[10px] text-white/20">Valo AI · 24/7 Monitoring</div>
           </div>
         </div>
       </div>
@@ -342,9 +322,6 @@ export default function SignupPage() {
 
                 <button onClick={handleNext} className="w-full rounded-xl bg-purple py-4 font-black text-white shadow-xl shadow-purple/20 transition-all hover:bg-purple-dark">
                   Go to dashboard
-                </button>
-                 <button className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-100 py-4 font-black text-emerald-600 transition-all hover:bg-emerald-200">
-                  <MessageSquare size={18} /> Open WhatsApp now
                 </button>
               </motion.div>
             )}

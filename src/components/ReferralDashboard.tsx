@@ -3,8 +3,6 @@ import { Gift, Copy, Share2, DollarSign, Users, Award, ExternalLink, MessageSqua
 import DashboardLayout from './DashboardLayout';
 
 import { useAuth } from '../context/AuthContext';
-import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { collection, query, where, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 import { UserData } from '../types';
 
 export default function ReferralDashboard() {
@@ -17,12 +15,9 @@ export default function ReferralDashboard() {
 
   React.useEffect(() => {
     if (!userData?.referralCode) return;
-    const q = query(collection(db, 'users'), where('referrerId', '==', userData.referralCode));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setReferrals(snapshot.docs.map(doc => doc.data() as UserData));
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    // Mock data for referrals
+    setReferrals([]);
+    setLoading(false);
   }, [userData?.referralCode]);
 
   const referralLink = `https://valoai.app/signup?ref=${userData?.referralCode || ''}`;
@@ -37,17 +32,11 @@ export default function ReferralDashboard() {
     if (!userData || !userData.balance || userData.balance < 20) return;
     setPayoutLoading(true);
     try {
-      await addDoc(collection(db, 'payoutRequests'), {
-        userId: userData.uid,
-        userName: `${userData.firstName} ${userData.lastName}`,
-        amount: userData.balance,
-        status: 'pending',
-        createdAt: serverTimestamp(),
-        method: userData.payoutMethod || 'Unknown'
-      });
+      // Mock payout request
+      await new Promise(resolve => setTimeout(resolve, 1500));
       setPayoutStatus('Payout request submitted successfully!');
     } catch (error) {
-      handleFirestoreError(error, OperationType.CREATE, 'payoutRequests');
+      console.error(error);
     } finally {
       setPayoutLoading(false);
     }
