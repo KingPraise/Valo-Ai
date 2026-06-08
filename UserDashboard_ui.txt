@@ -1,0 +1,111 @@
+<div id="page-dashboard" className="page">
+  <div className="dash-wrap">
+    <div className="dash-sidebar">
+      <div>
+        <div className="dash-nav-label">Main</div>
+        <div className="dash-nav-item active"><span className="dash-nav-icon">📊</span>Overview</div>
+        <div className="dash-nav-item"><span className="dash-nav-icon">📡</span>Signal Feed</div>
+        <div className="dash-nav-item"><span className="dash-nav-icon">📜</span>Signal History</div>
+        <div className="dash-nav-item"><span className="dash-nav-icon">📱</span>WhatsApp Setup</div>
+        <div className="dash-nav-item" onclick="showPage('referral')"><span className="dash-nav-icon">🎁</span>Referrals <span style={{"background":"var(--green)","color":"#fff","fontSize":".6rem","fontWeight":"700","padding":"1px 7px","borderRadius":"9999px","marginLeft":"auto"}}>30%</span></div>
+        <div className="dash-nav-label">Account</div>
+        <div className="dash-nav-item"><span className="dash-nav-icon">👤</span>Profile</div>
+        <div className="dash-nav-item"><span className="dash-nav-icon">💳</span>Subscription</div>
+        <div className="dash-nav-item"><span className="dash-nav-icon">🔔</span>Notifications</div>
+        <div className="dash-nav-label">Support</div>
+        <div className="dash-nav-item"><span className="dash-nav-icon">❓</span>Help Center</div>
+        <div className="dash-nav-item" onclick="showPage('home')"><span className="dash-nav-icon">🚪</span>Sign out</div>
+      </div>
+      <div className="dash-upgrade-box">
+        <h4>⚡ Free Trial</h4>
+        <p>5 of 7 days remaining. Upgrade to keep receiving signals.</p>
+        <button className="dash-upgrade-btn" onclick="showPage('pricing')">Upgrade to Pro →</button>
+      </div>
+    </div>
+    <div className="dash-main">
+      <div className="dash-greeting">Good morning, Alex 👋</div>
+      <div className="dash-sub">Your Valo AI signal feed — signals are pushed automatically to your WhatsApp</div>
+      
+      <div id="wa-live-banner" style={{"background":"#f0fdf4","border":"1.5px solid #bbf7d0","borderRadius":"16px","padding":"16px 20px","marginBottom":"18px","display":"flex","alignItems":"center","gap":"14px","position":"relative"}}>
+        <span style={{"fontSize":"1.8rem","flexShrink":"0"}}>📱</span>
+        <div style={{"flex":"1"}}>
+          <div style={{"fontSize":".92rem","fontWeight":"700","color":"#15803d"}}>WhatsApp is connected and live ✓</div>
+          <div style={{"fontSize":".82rem","color":"var(--green)","lineHeight":"1.65","marginTop":"2px"}}>Signals are being pushed to <strong>+1 (234) *** **00</strong> automatically. <strong>You don't need to check this dashboard</strong> to receive signals — just keep WhatsApp open.</div>
+        </div>
+        <a style={{"background":"#25d366","color":"#fff","border":"none","padding":"9px 18px","borderRadius":"9999px","fontWeight":"600","whiteSpace":"nowrap","cursor":"pointer","fontFamily":"var(--f-body)","fontSize":".82rem","textDecoration":"none"}} onclick="showToast('Opening WhatsApp...','success')">Open WhatsApp ↗</a>
+        <button onclick="this.parentElement.style.display='none'" style={{"position":"absolute","top":"8px","right":"10px","background":"none","border":"none","cursor":"pointer","color":"var(--green)","fontSize":".85rem","lineHeight":"1","padding":"4px"}}>✕</button>
+      </div>
+      <div className="kpi-grid">
+        <div className="kpi-card"><div className="kpi-label">Signals Received</div><div className="kpi-val purple">14</div><div className="kpi-change up">+3 this week</div></div>
+        <div className="kpi-card"><div className="kpi-label">Trial Status</div><div className="kpi-val green">Active</div><div className="kpi-change">5 days remaining</div></div>
+        <div className="kpi-card"><div className="kpi-label">WhatsApp</div><div className="kpi-val" style={{"fontSize":"1.3rem","color":"#16a34a"}}>Connected ●</div><div className="kpi-change up">Receiving signals</div></div>
+        <div className="kpi-card"><div className="kpi-label">Latest Signal</div><div className="kpi-val" style={{"fontSize":"1.2rem"}}>BTC Long</div><div className="kpi-change">Today · 09:14 AM</div></div>
+      </div>
+      <div className="dash-grid">
+        <div>
+          <div className="dash-card">
+            <div className="dash-card-title">Latest Delivered Signal <span className="dash-card-sub">Auto-pushed · 09:14 AM today</span></div>
+            <div className="sig-display">
+              <div className="sig-display-header"><span className="sig-coin">BTC/USDT</span><span className="bias-pill long-pill">Long</span></div>
+              <div className="sig-row"><span className="sig-k">Entry Zone</span><span className="sig-v">$93,200 – $95,400</span></div>
+              <div className="sig-row"><span className="sig-k">Stop Loss</span><span className="sig-v sl">$88,900</span></div>
+              <div className="sig-row"><span className="sig-k">Take Profit 1</span><span className="sig-v tp">$98,400</span></div>
+              <div className="sig-row"><span className="sig-k">Take Profit 2</span><span className="sig-v tp">$103,000</span></div>
+              <div className="sig-row"><span className="sig-k">Take Profit 3</span><span className="sig-v tp">$109,000</span></div>
+              <div className="sig-row"><span className="sig-k">Leverage</span><span className="sig-v">3x Cross</span></div>
+              <div className="sig-row"><span className="sig-k">Position Size</span><span className="sig-v">10–15%</span></div>
+              <div className="sig-row"><span className="sig-k">Risk Rule</span><span className="sig-v warn">Max 2 trades · 20% total</span></div>
+              <div className="sig-row"><span className="sig-k">Expected Duration</span><span className="sig-v">24–72 hours</span></div>
+              <div className="sig-row"><span className="sig-k">Price at Signal</span><span className="sig-v">$94,100</span></div>
+            </div>
+          </div>
+          <div className="dash-card">
+            <div className="dash-card-title">Signal History <span className="dash-card-sub">All auto-delivered to WhatsApp</span></div>
+            <div className="hist-list">
+              <div className="hist-item"><span className="hist-coin">BTC/USDT</span><span className="bias-pill long-pill" style={{"fontSize":".68rem","padding":"2px 8px"}}>Long</span><span className="hist-detail">$93,200–$95,400 · 3x · TP: $98.4K/$103K/$109K</span><span className="hist-time">Today 09:14</span></div>
+              <div className="hist-item"><span className="hist-coin">ETH/USDT</span><span className="bias-pill short-pill" style={{"fontSize":".68rem","padding":"2px 8px"}}>Short</span><span className="hist-detail">$3,420–$3,480 · 5x · TP: $3.29K/$3.18K/$3.05K</span><span className="hist-time">Yesterday 16:30</span></div>
+              <div className="hist-item"><span className="hist-coin">SOL/USDT</span><span className="bias-pill long-pill" style={{"fontSize":".68rem","padding":"2px 8px"}}>Long</span><span className="hist-detail">$182–$188 · 5x · TP: $197/$210/$228</span><span className="hist-time">Yesterday 11:22</span></div>
+              <div className="hist-item"><span className="hist-coin">TREE/USDT</span><span className="bias-pill long-pill" style={{"fontSize":".68rem","padding":"2px 8px"}}>Long</span><span className="hist-detail">$0.265–$0.272 · 5x · TP: $0.281/$0.289/$0.301</span><span className="hist-time">Mar 14</span></div>
+              <div className="hist-item"><span className="hist-coin">XRP/USDT</span><span className="bias-pill long-pill" style={{"fontSize":".68rem","padding":"2px 8px"}}>Long</span><span className="hist-detail">$0.58–$0.61 · 5x · TP: $0.64/$0.69/$0.75</span><span className="hist-time">Mar 13</span></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div className="plan-card">
+            <div className="plan-card-badge">Free Trial</div>
+            <div className="plan-card-name">7-Day Trial Plan</div>
+            <div className="plan-card-exp">Expires March 28, 2026 · 5 days left</div>
+            <div className="plan-card-stat">
+              <div className="plan-card-num">14</div>
+              <div className="plan-card-numlabel">signals delivered to your WhatsApp</div>
+            </div>
+            <button className="plan-cta-white" onclick="showPage('pricing')">Upgrade to Monthly Pro →</button>
+          </div>
+          <div className="wa-status-box" style={{"marginBottom":"16px"}}>
+            <div className="wa-status-title"><span className="dot" />WhatsApp Delivery Active</div>
+            <div className="wa-num">+1 (234) *** **00</div>
+            <p>Your number is connected and receiving signals automatically. No action needed — signals are pushed the moment they are identified.</p>
+            <button className="wa-open-btn">Open WhatsApp ↗</button>
+          </div>
+          <div className="dash-card" style={{"marginBottom":"16px","background":"linear-gradient(135deg,#ffffff 0%,#faf8ff 100%)","borderColor":"var(--purple-border)"}}>
+            <div className="dash-card-title">Referral Program <span className="dash-card-sub">Earn 30% recurring</span></div>
+            <div style={{"display":"flex","flexDirection":"column","gap":"10px"}}>
+              <div style={{"display":"flex","alignItems":"flex-start","gap":"10px","fontSize":".82rem","color":"var(--gray-600)"}}><span style={{"color":"var(--purple)","flexShrink":"0"}}>🎁</span><span>Share your link and earn <strong style={{"color":"var(--gray-900)"}}>30% cash</strong> every time a referral pays.</span></div>
+              <div style={{"display":"flex","alignItems":"flex-start","gap":"10px","fontSize":".82rem","color":"var(--gray-600)"}}><span style={{"color":"var(--green)","flexShrink":"0"}}>💸</span><span>Monthly = <strong style={{"color":"var(--gray-900)"}}>$12</strong> · Quarterly = <strong style={{"color":"var(--gray-900)"}}>$30</strong> · Yearly = <strong style={{"color":"var(--gray-900)"}}>$105</strong></span></div>
+              <button className="btn btn-purple btn-sm" style={{"width":"100%","justifyContent":"center"}} onclick="showPage('referral')">Open referral dashboard →</button>
+            </div>
+          </div>
+          <div className="dash-card" style={{"marginBottom":"0"}}>
+            <div className="dash-card-title">Signal Rules</div>
+            <div style={{"display":"flex","flexDirection":"column","gap":"10px"}}>
+              <div style={{"display":"flex","gap":"10px","fontSize":".82rem","color":"var(--gray-600)"}}><span style={{"color":"var(--purple)","flexShrink":"0"}}>📬</span>Signals are pushed automatically — no action needed</div>
+              <div style={{"display":"flex","gap":"10px","fontSize":".82rem","color":"var(--gray-600)"}}><span style={{"color":"var(--amber)","flexShrink":"0"}}>⚠️</span>Max 2 simultaneous trades · total 20% capital</div>
+              <div style={{"display":"flex","gap":"10px","fontSize":".82rem","color":"var(--gray-600)"}}><span style={{"color":"var(--green)","flexShrink":"0"}}>✓</span>Scale out at TP1 — let rest run to TP2 and TP3</div>
+              <div style={{"display":"flex","gap":"10px","fontSize":".82rem","color":"var(--gray-600)"}}><span style={{"color":"var(--red)","flexShrink":"0"}}>✗</span>Always set your stop loss immediately after entry</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
